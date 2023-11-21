@@ -29,7 +29,6 @@ from fjcommon.no_op import NoOp
 from fjcommon import timer
 from fjcommon.assertions import assert_exc
 
-
 class _CheckpointTracker(object):
     """ out_dir is usally set via set_out_dir """
     def __init__(self, out_dir=None, ckpt_name_fmt='ckpt_{:010d}.pt', tmp_postfix='.tmp'):
@@ -186,8 +185,9 @@ class Restorer(_CheckpointTracker):
         return self.restore(net, self.get_lastest_persistent_ckpt())
 
     def restore(self, modules, ckpt_p, strict=True, restore_restart=False):
-        print('Restoring {}... (strict={})'.format(ckpt_p, strict))
-        map_location = None if pe.CUDA_AVAILABLE else 'cpu'
+        print('saver.py Restoring {}... (strict={})'.format(ckpt_p, strict))
+        # map_location = None if pe.CUDA_AVAILABLE else 'cpu'
+        map_location = "cpu"
         state_dicts = torch.load(ckpt_p, map_location=map_location)
         # ---
         for key, m in modules.items():

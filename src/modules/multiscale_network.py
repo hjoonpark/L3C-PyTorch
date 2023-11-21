@@ -52,6 +52,12 @@ import matplotlib.pyplot as plt
 
 conv = pe.default_conv
 
+def subplot(fig, R, C, n, I_in, name):
+    batch_idx = 0
+    ax = fig.add_subplot(R, C, n)
+    I = I_in[batch_idx, :3, :, :].detach().cpu().numpy().transpose(1, 2, 0)
+    ax.imshow(I)
+    ax.set_title("{} {}\n({:.1f}, {:.1f}) {}".format(name, list(I_in.shape), I_in.min().item(), I_in.max().item(), I_in.dtype))
 
 
 class Out(object):
@@ -241,7 +247,9 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
                   auto_recursive_from=self.scales if auto_recurse > 0 else None)
         out.append_input_image(x)
 
+        print("forward:", x.shape, x.min().item(), x.max().item(), x.dtype)
         x = self.sub_rgb_mean(x)  # something like -128..128 but not really
+        print("x:", x.shape, x.min().item(), x.max().item(), x.dtype)
         if self._rgb:
             x = x.detach()
         self._forward_with_scales(out, x, forward_scales)
@@ -276,21 +284,43 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
         inp = x
         enc_outs = []
 
+        save_dir = "output_plots"
+        os.makedirs(save_dir, exist_ok=1)
+
+        # inp before head
+        # inp after head
+        # enc.F, enc.bn, enc.bn_q
+        # dec.F
+        # P
+
+        L = 4
+        R = len(forward_scales)
+        C = 6
+        fig = plt.figure(figsize=(C*L, R*L))
+        n = 0
+        batch_idx = 0
         for scale in forward_scales:  # from fine to coarse
             net = self.nets[scale]
             head = self.heads[scale]
 
+            subplot(fig, R, C, C*scale+1, inp, f"[{scale}] inp A")
+
             inp = head(inp)
-            enc_out = net.enc(inp)
+
+            subplot(fig, R, C, C*scale+2, inp, f"[{scale}] inp B")
+
+            enc_out = net.enc(inp)          
+            
+            subplot(fig, R, C, C*scale+3, enc_out.F, f"[{scale}] enc_out.F")
+            subplot(fig, R, C, C*scale+4, enc_out.bn, f"[{scale}] enc_out.bn")
+            subplot(fig, R, C, C*scale+5, enc_out.bn_q, f"[{scale}] enc_out.bn_q")
+
             enc_outs.append(enc_out)
             inp = self.get_next_scale_intput(enc_out)  # for next scale
 
         dec_outs = []
 
 
-        save_dir = "output_plots"
-        os.makedirs(save_dir, exist_ok=1)
-        fig = plt.figure()
         batch_idx, n_depth = 0, 5
         n = 0
         for i, scale in reversed(list(enumerate(forward_scales))):  # from coarse to fine
@@ -310,18 +340,9 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
             dec_out = net.dec(dec_inp, features_to_fuse)
             dec_outs.insert(0, dec_out)
 
-            ax = fig.add_subplot(len(forward_scales), n_depth, n_depth*n+1)
-            I = dec_inp.detach().cpu().numpy()[batch_idx, i, :, :]
-            ax.imshow(I)
-            ax.set_title("Dec in {}\n({:.1f}, {:.1f})".format(I.shape, I.min(), I.max()))
+            subplot(fig, R, C, C*scale+6, dec_out.F, f"[{scale}] dec_out.F")
 
-            ax = fig.add_subplot(len(forward_scales), n_depth, n_depth*n+2)
-            I = dec_out.F.detach().cpu().numpy()[batch_idx, i, :, :]
-            ax.imshow(I)
-            ax.set_title("Dec out {}\n({:.1f}, {:.1f})".format(I.shape, I.min(), I.max()))
-            n += 1
-
-        save_path = os.path.join(save_dir, "dec.jpg")
+        save_path = os.path.join(save_dir, "forward.jpg")
         plt.tight_layout()
         plt.savefig(save_path, dpi=150)
         plt.close()

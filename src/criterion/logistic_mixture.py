@@ -152,6 +152,9 @@ class DiscretizedMixLogisticLoss(vis.summarizable_module.SummarizableModule):
         assert x.min() >= self.x_min and x.max() <= self.x_max, '{},{} not in {},{}'.format(
                 x.min(), x.max(), self.x_min, self.x_max)
 
+        print("Loss: x: {} ({:.1f}, {:.1f}) {}".format(x.shape, x.min().item(), x.max().item(), x.dtype))
+        print("      l: {} ({:.1f}, {:.1f}) {}".format(l.shape, l.min().item(), l.max().item(), l.dtype))
+        print()
         # Extract ---
         #  NCKHW      NCKHW  NCKHW
         x, logit_pis, means, log_scales, K = self._extract_non_shared(x, l)
