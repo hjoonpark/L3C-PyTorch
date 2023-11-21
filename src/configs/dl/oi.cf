@@ -4,9 +4,9 @@ crop_size = 128
 
 max_epochs = None
 
-image_cache_pkl = None
-train_imgs_glob = 'path/to/train/ (check readme)'
-val_glob = 'path/to/val (check readme)'
+image_cache_pkl = "/nobackup/joon/1_Projects/L3C-PyTorch/data/cache.pkl"
+train_imgs_glob = '/nobackup/joon/1_Projects/L3C-PyTorch/data/train_oi'
+val_glob = '/nobackup/joon/1_Projects/L3C-PyTorch/data/val_oi'
 
 val_glob_min_size = None  # for cache_p
 num_val_batches = 5

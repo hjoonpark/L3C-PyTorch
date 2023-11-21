@@ -47,8 +47,11 @@ from modules.head import RGBHead, Head
 from modules.net import Net, EncOut
 from modules.prob_clf import AtrousProbabilityClassifier
 
+import os
+import matplotlib.pyplot as plt
 
 conv = pe.default_conv
+
 
 
 class Out(object):
@@ -283,6 +286,13 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
             inp = self.get_next_scale_intput(enc_out)  # for next scale
 
         dec_outs = []
+
+
+        save_dir = "output_plots"
+        os.makedirs(save_dir, exist_ok=1)
+        fig = plt.figure()
+        batch_idx, n_depth = 0, 5
+        n = 0
         for i, scale in reversed(list(enumerate(forward_scales))):  # from coarse to fine
             net = self.nets[scale]
             enc_out = enc_outs[i]
@@ -299,6 +309,23 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
             dec_inp = enc_out.bn if self.training else enc_out.bn_q
             dec_out = net.dec(dec_inp, features_to_fuse)
             dec_outs.insert(0, dec_out)
+
+            ax = fig.add_subplot(len(forward_scales), n_depth, n_depth*n+1)
+            I = dec_inp.detach().cpu().numpy()[batch_idx, i, :, :]
+            ax.imshow(I)
+            ax.set_title("Dec in {}\n({:.1f}, {:.1f})".format(I.shape, I.min(), I.max()))
+
+            ax = fig.add_subplot(len(forward_scales), n_depth, n_depth*n+2)
+            I = dec_out.F.detach().cpu().numpy()[batch_idx, i, :, :]
+            ax.imshow(I)
+            ax.set_title("Dec out {}\n({:.1f}, {:.1f})".format(I.shape, I.min(), I.max()))
+            n += 1
+
+        save_path = os.path.join(save_dir, "dec.jpg")
+        plt.tight_layout()
+        plt.savefig(save_path, dpi=150)
+        plt.close()
+        print(save_path)
 
         for scale, enc_out, dec_out in zip(forward_scales, enc_outs, dec_outs):
             prob_clf = self.prob_clfs[scale]

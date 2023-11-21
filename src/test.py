@@ -30,7 +30,7 @@ we just print that (see TestID in multiscale_tester.py).
 """
 
 import torch.backends.cudnn
-torch.backends.cudnn.benchmark = True
+torch.backends.cudnn.benchmark = False
 
 import argparse
 from operator import itemgetter

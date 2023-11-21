@@ -42,7 +42,8 @@ CUDA_AVAILABLE = torch.cuda.is_available()
 # if IGNORE_CUDA:
 #     print('*** IGNORE_CUDA=1')
 
-DEVICE = torch.device("cuda:0" if CUDA_AVAILABLE else "cpu")
+DEVICE = "cpu"
+# DEVICE = torch.device("cuda:0" if CUDA_AVAILABLE else "cpu")
 
 
 # This has an effect to all parts reading pytorch_ext.DEVICE *after* it has been set.

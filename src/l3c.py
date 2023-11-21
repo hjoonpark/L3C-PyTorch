@@ -77,7 +77,7 @@ def main():
     p.add_argument('log_dir', help='Directory of experiments.')
     p.add_argument('log_date', help='A log_date, such as 0104_1345.')
 
-    p.add_argument('--device', type=str, choices=['auto', 'gpu', 'cpu'], default='auto',
+    p.add_argument('--device', type=str, choices=['auto', 'gpu', 'cpu'], default='cpu',
                    help='Select the device to run this code on, as mentioned in the README section "Selecting torchac". '
                         'If DEVICE=auto, select torchac-backend depending on whether torchac-backend-gpu or -cpu is '
                         'available. See function parse_device_flag for details.'
