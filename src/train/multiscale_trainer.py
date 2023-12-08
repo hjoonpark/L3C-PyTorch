@@ -39,7 +39,6 @@ from train import lr_schedule
 from train.train_restorer import TrainRestorer
 from train.trainer import LogConfig, Trainer
 
-
 class MultiscaleTrainer(Trainer):
     def __init__(self,
                  ms_config_p, dl_config_p,
@@ -65,6 +64,7 @@ class MultiscaleTrainer(Trainer):
         global_config.update_config(self.config_ms)
         # Create data loaders
         dl_train, dl_val = self._get_dataloaders(num_workers)
+        print("1")
         # Create blueprint. A blueprint collects the network as well as the losses in one class, for easy reuse
         # during testing.
         self.blueprint = MultiscaleBlueprint(self.config_ms)
