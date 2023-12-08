@@ -43,7 +43,11 @@ class MultiscaleBlueprint(vis.summarizable_module.SummarizableModule):
     def __init__(self, config_ms):
         super(MultiscaleBlueprint, self).__init__()
         net = MultiscaleNetwork(config_ms)
+        pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
+        print("net parameters: {:,}".format(pytorch_total_params))
+        print("net to {}".format(pe.DEVICE))
         net.to(pe.DEVICE)
+        print("net init")
 
         self.net = net
         self.losses = net.get_losses()

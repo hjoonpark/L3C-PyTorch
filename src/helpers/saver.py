@@ -187,8 +187,8 @@ class Restorer(_CheckpointTracker):
     def restore(self, modules, ckpt_p, strict=True, restore_restart=False):
         print('saver.py Restoring {}... (strict={})'.format(ckpt_p, strict))
         # JOON
-        map_location = None if pe.CUDA_AVAILABLE else 'cpu'
-        # map_location = "cpu"
+        # map_location = None if pe.CUDA_AVAILABLE else 'cpu'
+        map_location = "cpu"
         state_dicts = torch.load(ckpt_p, map_location=map_location)
         # ---
         for key, m in modules.items():
