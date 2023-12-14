@@ -9,6 +9,8 @@ WARN: Given cache_p=/nobackup/joon/1_Projects/L3C-PyTorch/data/cache.pkl, but ke
 Found:
 
 Recursively traversing /nobackup/joon/1_Projects/L3C-PyTorch/data/train_oi...
+>> Image.open(/nobackup/joon/1_Projects/L3C-PyTorch/data/train_oi/01c752bda09f3e9e.png)
+img.shape= (520, 780, 3)
 Created DataLoader [train] 1 batches -> 1 imgs
 INFO: No file found at /nobackup/joon/1_Projects/L3C-PyTorch/src/train/fixedimg.jpg
 cache_p=/nobackup/joon/1_Projects/L3C-PyTorch/data/cache.pkl does not exist.
@@ -18,11 +20,7 @@ Found:
 
 Recursively traversing /nobackup/joon/1_Projects/L3C-PyTorch/data/val_oi...
 Created DataLoader [val] 1 batches -> 1 imgs
-dl_train: <torch.utils.data.dataloader.DataLoader object at 0x7f5ffc7b1310>
-net parameters: 5,008,395
-net to cpu
-net init
-Network: MultiscaleNetwork(
+MultiscaleNetwork(
   scales=3 / 3 nets / 3 ps
   (sub_rgb_mean): MeanShift(3, 3, kernel_size=(1, 1), stride=(1, 1))
   (heads): ModuleList(
@@ -158,221 +156,30 @@ Network: MultiscaleNetwork(
     (2): AtrousProbabilityClassifier(C=5; K=10; Kp=150; rates=1,2,4)
   )
 )
+net parameters: 5,008,395
+net to cpu
+net init
 --------------------------------------------------------------------------------
-Created log_dir/1213_2021 cr oi...
-Checkpoints will be saved to log_dir/1213_2021 cr oi/ckpts
-Creating float32 buffer for histo/enc_1_after_1x1: 10x20480
-Creating float32 buffer for histo/enc_2_after_1x1: 10x5120
-Creating float32 buffer for histo/enc_3_after_1x1: 10x1280
->> saving sampled to: log_dir/1213_2021 cr oi/train_sampled/000000
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000000/000000_gt.png
-----------------------------------------
-- Sampling []
-----------------------------------------
-2: Feeding encoder output to decoder
-1: Feeding encoder output to decoder
-0: Feeding encoder output to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000000/000000_rgb.png
-----------------------------------------
-- Sampling [0]
-----------------------------------------
-2: Feeding encoder output to decoder
-1: Feeding encoder output to decoder
-1: sampling N5HW for next scale
-0: Feeding sampled to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000000/000000_rgb+bn0.png
-----------------------------------------
-- Sampling [0, 1]
-----------------------------------------
-2: Feeding encoder output to decoder
-2: sampling N5HW for next scale
-1: Feeding sampled to decoder
-1: sampling N5HW for next scale
-0: Feeding sampled to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000000/000000_rgb+bn0+bn1.png
->> saving sampled to: log_dir/1213_2021 cr oi/train_sampled/000100
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000100/000100_gt.png
-----------------------------------------
-- Sampling []
-----------------------------------------
-2: Feeding encoder output to decoder
-1: Feeding encoder output to decoder
-0: Feeding encoder output to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000100/000100_rgb.png
-----------------------------------------
-- Sampling [0]
-----------------------------------------
-2: Feeding encoder output to decoder
-1: Feeding encoder output to decoder
-1: sampling N5HW for next scale
-0: Feeding sampled to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000100/000100_rgb+bn0.png
-----------------------------------------
-- Sampling [0, 1]
-----------------------------------------
-2: Feeding encoder output to decoder
-2: sampling N5HW for next scale
-1: Feeding sampled to decoder
-1: sampling N5HW for next scale
-0: Feeding sampled to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000100/000100_rgb+bn0+bn1.png
-1213_2021    100: bpsp 9.299e+00 | loss 9.178e+00 // 1.191 img/s [3.51e-02 s/batch load]
->> saving sampled to: log_dir/1213_2021 cr oi/train_sampled/000200
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000200/000200_gt.png
-----------------------------------------
-- Sampling []
-----------------------------------------
-2: Feeding encoder output to decoder
-1: Feeding encoder output to decoder
-0: Feeding encoder output to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000200/000200_rgb.png
-----------------------------------------
-- Sampling [0]
-----------------------------------------
-2: Feeding encoder output to decoder
-1: Feeding encoder output to decoder
-1: sampling N5HW for next scale
-0: Feeding sampled to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000200/000200_rgb+bn0.png
-----------------------------------------
-- Sampling [0, 1]
-----------------------------------------
-2: Feeding encoder output to decoder
-2: sampling N5HW for next scale
-1: Feeding sampled to decoder
-1: sampling N5HW for next scale
-0: Feeding sampled to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000200/000200_rgb+bn0+bn1.png
-1213_2021    200: bpsp 9.440e+00 | loss 9.319e+00 // 1.216 img/s [3.56e-02 s/batch load]
->> saving sampled to: log_dir/1213_2021 cr oi/train_sampled/000300
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000300/000300_gt.png
-----------------------------------------
-- Sampling []
-----------------------------------------
-2: Feeding encoder output to decoder
-1: Feeding encoder output to decoder
-0: Feeding encoder output to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000300/000300_rgb.png
-----------------------------------------
-- Sampling [0]
-----------------------------------------
-2: Feeding encoder output to decoder
-1: Feeding encoder output to decoder
-1: sampling N5HW for next scale
-0: Feeding sampled to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000300/000300_rgb+bn0.png
-----------------------------------------
-- Sampling [0, 1]
-----------------------------------------
-2: Feeding encoder output to decoder
-2: sampling N5HW for next scale
-1: Feeding sampled to decoder
-1: sampling N5HW for next scale
-0: Feeding sampled to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000300/000300_rgb+bn0+bn1.png
-1213_2021    300: bpsp 9.357e+00 | loss 9.236e+00 // 1.199 img/s [3.69e-02 s/batch load]
->> saving sampled to: log_dir/1213_2021 cr oi/train_sampled/000400
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000400/000400_gt.png
-----------------------------------------
-- Sampling []
-----------------------------------------
-2: Feeding encoder output to decoder
-1: Feeding encoder output to decoder
-0: Feeding encoder output to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000400/000400_rgb.png
-----------------------------------------
-- Sampling [0]
-----------------------------------------
-2: Feeding encoder output to decoder
-1: Feeding encoder output to decoder
-1: sampling N5HW for next scale
-0: Feeding sampled to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000400/000400_rgb+bn0.png
-----------------------------------------
-- Sampling [0, 1]
-----------------------------------------
-2: Feeding encoder output to decoder
-2: sampling N5HW for next scale
-1: Feeding sampled to decoder
-1: sampling N5HW for next scale
-0: Feeding sampled to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000400/000400_rgb+bn0+bn1.png
-1213_2021    400: bpsp 8.806e+00 | loss 8.686e+00 // 1.191 img/s [3.59e-02 s/batch load]
->> saving sampled to: log_dir/1213_2021 cr oi/train_sampled/000500
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000500/000500_gt.png
-----------------------------------------
-- Sampling []
-----------------------------------------
-2: Feeding encoder output to decoder
-1: Feeding encoder output to decoder
-0: Feeding encoder output to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000500/000500_rgb.png
-----------------------------------------
-- Sampling [0]
-----------------------------------------
-2: Feeding encoder output to decoder
-1: Feeding encoder output to decoder
-1: sampling N5HW for next scale
-0: Feeding sampled to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000500/000500_rgb+bn0.png
-----------------------------------------
-- Sampling [0, 1]
-----------------------------------------
-2: Feeding encoder output to decoder
-2: sampling N5HW for next scale
-1: Feeding sampled to decoder
-1: sampling N5HW for next scale
-0: Feeding sampled to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000500/000500_rgb+bn0+bn1.png
-1213_2021    500: bpsp 9.207e+00 | loss 9.086e+00 // 1.277 img/s [3.67e-02 s/batch load]
------------------------------------
-   500 | bpsp=9.313 | (1.269 s/img)
------------------------------------
->> saving sampled to: log_dir/1213_2021 cr oi/train_sampled/000600
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000600/000600_gt.png
-----------------------------------------
-- Sampling []
-----------------------------------------
-2: Feeding encoder output to decoder
-1: Feeding encoder output to decoder
-0: Feeding encoder output to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000600/000600_rgb.png
-----------------------------------------
-- Sampling [0]
-----------------------------------------
-2: Feeding encoder output to decoder
-1: Feeding encoder output to decoder
-1: sampling N5HW for next scale
-0: Feeding sampled to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000600/000600_rgb+bn0.png
-----------------------------------------
-- Sampling [0, 1]
-----------------------------------------
-2: Feeding encoder output to decoder
-2: sampling N5HW for next scale
-1: Feeding sampled to decoder
-1: sampling N5HW for next scale
-0: Feeding sampled to decoder
-0: sampling N3HW for next scale
-[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000600/000600_rgb+bn0+bn1.png
-1213_2021    600: bpsp 9.253e+00 | loss 9.132e+00 // 1.249 img/s [3.68e-02 s/batch load]
+Created log_dir/1214_0509 cr oi...
+Checkpoints will be saved to log_dir/1214_0509 cr oi/ckpts
+iter 0
+>> saving sampled to: log_dir/1214_0509 cr oi/train_sampled/000000
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1214_0509 cr oi/train_sampled/000000/000000_gt.png
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1214_0509 cr oi/train_sampled/000000/000000_rgb.png
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1214_0509 cr oi/train_sampled/000000/000000_rgb+bn0.png
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1214_0509 cr oi/train_sampled/000000/000000_rgb+bn0+bn1.png
+[save_img] img: (536, 800, 3)  | out_p: log_dir/1214_0509 cr oi/train_sampled/000000/val_000000_gt.png
+[save_img] img: (536, 800, 3)  | out_p: log_dir/1214_0509 cr oi/train_sampled/000000/val_000000_rgb.png
+[save_img] img: (536, 800, 3)  | out_p: log_dir/1214_0509 cr oi/train_sampled/000000/val_000000_rgb+bn0.png
+[save_img] img: (536, 800, 3)  | out_p: log_dir/1214_0509 cr oi/train_sampled/000000/val_000000_rgb+bn0+bn1.png
+>> saving sampled to: log_dir/1214_0509 cr oi/train_sampled/000000
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1214_0509 cr oi/train_sampled/000000/000000_gt.png
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1214_0509 cr oi/train_sampled/000000/000000_rgb.png
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1214_0509 cr oi/train_sampled/000000/000000_rgb+bn0.png
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1214_0509 cr oi/train_sampled/000000/000000_rgb+bn0+bn1.png
+iter 100
+1214_0509    100: bpsp 9.750e+00 | loss 9.629e+00 // 1.064 img/s [3.10e-02 s/batch load]
+iter 200
+1214_0509    200: bpsp 9.581e+00 | loss 9.461e+00 // 1.204 img/s [4.21e-02 s/batch load]
+iter 300
+1214_0509    300: bpsp 9.591e+00 | loss 9.470e+00 // 1.235 img/s [4.08e-02 s/batch load]

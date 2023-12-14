@@ -16,12 +16,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with L3C-PyTorch.  If not, see <https://www.gnu.org/licenses/>.
 """
-import os
+import os, glob
 import time
 
 from fjcommon import config_parser
 from fjcommon import functools_ext as ft
 from fjcommon import timer
+
+import torch
 from torch import optim
 from torch.utils.data import DataLoader
 from torchvision import transforms as transforms
@@ -39,6 +41,9 @@ from train import lr_schedule
 from train.train_restorer import TrainRestorer
 from train.trainer import LogConfig, Trainer
 from test.image_saver import ImageSaver
+from PIL import Image
+
+pil_to_tensor = transforms.Compose([images_loader.IndexImagesDataset.to_tensor_uint8_transform()])
 
 class MultiscaleTrainer(Trainer):
     def __init__(self,
@@ -65,11 +70,9 @@ class MultiscaleTrainer(Trainer):
         global_config.update_config(self.config_ms)
         # Create data loaders
         dl_train, dl_val = self._get_dataloaders(num_workers)
-        print("dl_train:", dl_train)
         # Create blueprint. A blueprint collects the network as well as the losses in one class, for easy reuse
         # during testing.
         self.blueprint = MultiscaleBlueprint(self.config_ms)
-        print('Network:', self.blueprint.net)
         # Setup optimizer
         optim_cls = {'RMSprop': optim.RMSprop,
                      'Adam': optim.Adam,
@@ -99,7 +102,6 @@ class MultiscaleTrainer(Trainer):
         print(f'Checkpoints will be saved to {self.ckpt_dir}')
         saver.set_out_dir(self.ckpt_dir)
 
-
         # Create summary writer
         sw = sw_cls(self.log_dir)
         self.summarizer = vis.summarizable_module.Summarizer(sw)
@@ -119,10 +121,12 @@ class MultiscaleTrainer(Trainer):
     def _get_dataloaders(self, num_workers, shuffle_train=True):
         assert self.config_dl.train_imgs_glob is not None
         print('Cropping to {}'.format(self.config_dl.crop_size))
-        to_tensor_transform = transforms.Compose(
-                [transforms.RandomCrop(self.config_dl.crop_size),
-                 transforms.RandomHorizontalFlip(),
-                 images_loader.IndexImagesDataset.to_tensor_uint8_transform()])
+        # JP:
+        to_tensor_transform = transforms.Compose([
+                transforms.RandomCrop(self.config_dl.crop_size),
+                transforms.RandomHorizontalFlip(),
+                images_loader.IndexImagesDataset.to_tensor_uint8_transform()])
+        
         # NOTE: if there are images in your training set with dimensions <128, training will abort at some point,
         # because the cropper failes. See REAME, section about data preparation.
         min_size = self.config_dl.crop_size
@@ -183,8 +187,47 @@ class MultiscaleTrainer(Trainer):
 
         values = Values('{:.3e}', ' | ')
 
+        if i % 100 == 0:
+            print("iter {}".format(i))
+
         with self.time_accumulator.execute():
             idxs, img_batch, s = self.blueprint.unpack(batch)
+
+            # SAMPLE training data crop (3, 128, 128)
+            if i % 1000 == 0:
+                sample = 1
+                img_batch = img_batch[0].unsqueeze(0)
+                if sample:
+                    # -----------------------------------------------                
+                    # JP: save ground truth
+                    save_folder = "{:06d}".format(i)
+                    sample_save_dir = os.path.join(self.image_saver.out_dir, save_folder)
+                    os.makedirs(sample_save_dir, exist_ok=True)
+                    print(">> saving sampled to: {}".format(sample_save_dir))
+
+                    # JP: save ground truth
+                    self.image_saver.save_img(img_batch, os.path.join(save_folder, '{:06d}_gt.png'.format(i)))
+
+                    # sample
+                    for style, sample_scales in (('rgb', []),               # Sample RGB scale (final scale)
+                                                ('rgb+bn0', [0]),          # Sample RGB + z^(1)
+                                                ('rgb+bn0+bn1', [0, 1])):  # Sample RGB + z^(1) + z^(2)
+                        sampled = self.blueprint.sample_forward(img_batch, sample_scales)
+                        self.image_saver.save_img(sampled, os.path.join(save_folder, '{:06d}_{}.png'.format(i, style)))
+
+                    # -----------------------------------------------                
+                    # SAMPLE test data (3, full w, full h)
+                    val_path = glob.glob("../data/val_oi/*.png")[0]
+                    raw_img_uint8_crop = pil_to_tensor(Image.open(val_path)).unsqueeze(0)
+                    img, _ = self.blueprint.unpack_batch_pad(raw_img_uint8_crop, fac=8)
+                    self.image_saver.save_img(img, os.path.join(save_folder, 'val_{:06d}_gt.png'.format(i)))
+
+                    # sample
+                    for style, sample_scales in (('rgb', []),               # Sample RGB scale (final scale)
+                                                ('rgb+bn0', [0]),          # Sample RGB + z^(1)
+                                                ('rgb+bn0+bn1', [0, 1])):  # Sample RGB + z^(1) + z^(2)
+                        sampled = self.blueprint.sample_forward(img, sample_scales)
+                        self.image_saver.save_img(sampled, os.path.join(save_folder, 'val_{:06d}_{}.png'.format(i, style)))
 
             with self.summarizer.maybe_enable(prefix='train', flag=log, global_step=i):
                 out = self.blueprint.forward(img_batch)

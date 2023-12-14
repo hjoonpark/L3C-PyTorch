@@ -46,6 +46,8 @@ from helpers.global_config import global_config
 from modules.head import RGBHead, Head
 from modules.net import Net, EncOut
 from modules.prob_clf import AtrousProbabilityClassifier
+from PIL import Image
+from vis.image_summaries import to_image
 
 import os
 import matplotlib.pyplot as plt
@@ -257,8 +259,12 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
 
     def get_next_scale_intput(self, previous_enc_out: EncOut):
         if self.config_ms.enc.feed_F:  # set to False for the RGB baselines, where there are no features
+            # print("path true")
+            # print("previous_enc_out.F:", previous_enc_out.F.shape)
             return previous_enc_out.F
         else:
+            # print("path false")
+            # print("previous_enc_out.bn:", previous_enc_out.bn.shape)
             return previous_enc_out.bn
 
     def get_Cin_for_scale(self, scale):
@@ -391,9 +397,9 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
         if auto_recurse != 0:
             raise NotImplementedError(f'Currently not supported for sampling: autorecurse={auto_recurse}')
 
-        print('-' * 40)
-        print('- Sampling {}'.format(sample_scales))
-        print('-' * 40)
+        # print('-' * 40)
+        # print('- Sampling {}'.format(sample_scales))
+        # print('-' * 40)
 
         forward_scales = list(range(self.scales)) + [-1 for _ in range(auto_recurse)]
         x = self.sub_rgb_mean(x)  # something like -128..128 but not really
@@ -407,20 +413,45 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
         :param sample_scales: first is always sampled. If sample = [0], also sample first bottleneck
         :return:
         """
+        # print("JP ", "*"*50, "sample_forward")
         inp = x
+        
+        # plot = True
+        # save_dir = "sampled_test_images"
+        # os.makedirs(save_dir, exist_ok=True)
+
+        # if plot:
+        #     n_scales = len(sample_scales)
+        #     save_path = os.path.join(save_dir, f"inp_{n_scales}_0.png")
+        #     I = to_image(inp/255.0+0.5)
+        #     I = Image.fromarray(I)
+        #     I.save(save_path)
+        #     print("SAVED:", inp.shape, save_path)
 
         enc_outs = []
         Cs = [3]
         for scale in forward_scales:  # from fine to coarse
             net = self.nets[scale]
             head = self.heads[scale]
+            # print("------ scale {} -----".format(scale))
 
             # translates to NCfHW per scale. Makes sense for shared nets, where we need a special case for RGB.
+            # print("  inp before head:", inp.shape)
             inp = head(inp)
+            # print("  inp after head:", inp.shape)
+
             enc_out = net.enc(inp)
+            # print("  enc_out:")
+            # for k, v in enc_out._asdict().items():
+            #     if torch.is_tensor(v):
+            #         print("      {}: {}".format(k, v.shape))
+            #     else:
+            #         print("      {}: {}".format(k, v))
+
             Cs.append(enc_out.bn.shape[1])
             enc_outs.append(enc_out)
             inp = self.get_next_scale_intput(enc_out)
+            # print("  get_next_scale_intput inp:", inp.shape)
 
         prev_x = None
 
@@ -446,21 +477,23 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
                         for c in partial_final:
                             prev_x[:, c, ...] = enc_outs[scale].bn_q[:, c, ...]
 
-                print('{}: Feeding sampled to decoder'.format(scale))
+                # print('{}: Feeding sampled to decoder'.format(scale))
                 decoder_input = prev_x
             else:
-                print('{}: Feeding encoder output to decoder'.format(scale))
+                # print('{}: Feeding encoder output to decoder'.format(scale))
                 decoder_input = enc_outs[scale].bn_q
 
+            # print("    decoder_input:", decoder_input.shape)
             dec_out = net.dec(decoder_input, features_to_fuse)
             if self._fuse_feat:
                 features_to_fuse, = dec_out  # unpack F
             P = prob_clf(dec_out[0])  # unpack F, torch.jit thing
 
             if scale == 0 or scale - 1 in sample_scales:
-                print('{}: sampling N{}HW for next scale'.format(scale, C))
+                # print('{}: sampling N{}HW for next scale'.format(scale, C))
                 prev_x = loss_dmm.sample(P, C=C)
-
+        # print("prev_x:", prev_x.shape)
+        # print("JP ", "*"*50, "sample_forward DONE")
         return prev_x
 
 

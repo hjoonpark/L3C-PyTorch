@@ -90,9 +90,14 @@ class IndexImagesDataset(Dataset):
 
     def __getitem__(self, idx):
         path = self.files[idx]
+        # print("JP __getitem__ path:", path)
         with open(path, 'rb') as f:
             pil = Image.open(f).convert('RGB')
+            # print(self.to_tensor_transform)
+            # print("  pil:", pil.size)
             raw = self.to_tensor_transform(pil)  # 3HW uint8s
+            # print("  raw:", raw.shape)
+            # assert 0
         return {'idx': idx,
                 'raw': raw}
 
@@ -198,11 +203,13 @@ class ImagesCached(object):
     def _iter_imgs_unordered_filter_size(self, verbose=False):
         for p in self._iter_imgs_unordered(self.images_spec):
             if self.min_size:
+                print(">> Image.open({})".format(p))
                 img = Image.open(p)
                 img_min_dim = min(img.size)
                 if img_min_dim < self.min_size:
                     print('Skipping {} ({})...'.format(p, img.size))
                     continue
+                print("img.shape=", np.array(img).shape)
             if verbose:
                 print(p)
             yield p

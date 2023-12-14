@@ -58,10 +58,10 @@ class HistogramPlot(SummarizableModule):
         if self.per_channel:
             for c in range(self.num_chan):
                 self.buffers[c].add(x[:self.num_inputs_to_buffer, c, ...].detach())
-        else:
-            self.buffers.add(x[:self.num_inputs_to_buffer, ...].detach())
+        # else:
+        #     self.buffers.add(x[:self.num_inputs_to_buffer, ...].detach())
         # register for plotting
-        self.summarizer.register_figures(self.prefix, self.figure_creator)
+        # self.summarizer.register_figures(self.prefix, self.figure_creator)
         return x
 
     def _plot(self, plt):

@@ -30,20 +30,18 @@ from helpers.pad import pad
 from modules.multiscale_network import MultiscaleNetwork, Out
 from vis import histogram_plotter, image_summaries
 
-
 MultiscaleLoss = namedtuple(
         'MultiscaleLoss',
         ['loss_pc',                 # loss to minimize
          'nonrecursive_bpsps',      # bpsp corresponding to non-recursive scales
          'recursive_bpsps'])        # None if not recursive, else all bpsp including recursive
 
-
-
 class MultiscaleBlueprint(vis.summarizable_module.SummarizableModule):
     def __init__(self, config_ms):
         super(MultiscaleBlueprint, self).__init__()
         net = MultiscaleNetwork(config_ms)
         pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
+        print(net)
         print("net parameters: {:,}".format(pytorch_total_params))
         print("net to {}".format(pe.DEVICE))
         net.to(pe.DEVICE)

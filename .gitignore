@@ -2,6 +2,8 @@ log_dir/
 output*/
 test_sampled/
 data/*_original/
+*.pkl
+sampled_test_images/
 
 .DS_Store
 .idea/
