@@ -136,6 +136,5 @@ def main():
             for testset, log_date, restore_itr, result in sorted(results, key=itemgetter(sortby)):
                 a.append(testset.id,  names_to_log_date[log_date], str(restore_itr), result)
 
-
 if __name__ == '__main__':
     main()

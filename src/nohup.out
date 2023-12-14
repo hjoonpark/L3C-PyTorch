@@ -1,0 +1,378 @@
+********************************************************************************
+DEVICE == cpu // PyTorch v1.2.0+cu92
+********************************************************************************
+GlobalConfig()
+Cropping to 128
+cache_p=/nobackup/joon/1_Projects/L3C-PyTorch/data/cache.pkl does not exist.
+WARN: Given cache_p=/nobackup/joon/1_Projects/L3C-PyTorch/data/cache.pkl, but key not found:
+('/nobackup/joon/1_Projects/L3C-PyTorch/data/train_oi', 128)
+Found:
+
+Recursively traversing /nobackup/joon/1_Projects/L3C-PyTorch/data/train_oi...
+Created DataLoader [train] 1 batches -> 1 imgs
+INFO: No file found at /nobackup/joon/1_Projects/L3C-PyTorch/src/train/fixedimg.jpg
+cache_p=/nobackup/joon/1_Projects/L3C-PyTorch/data/cache.pkl does not exist.
+WARN: Given cache_p=/nobackup/joon/1_Projects/L3C-PyTorch/data/cache.pkl, but key not found:
+('/nobackup/joon/1_Projects/L3C-PyTorch/data/val_oi', None)
+Found:
+
+Recursively traversing /nobackup/joon/1_Projects/L3C-PyTorch/data/val_oi...
+Created DataLoader [val] 1 batches -> 1 imgs
+dl_train: <torch.utils.data.dataloader.DataLoader object at 0x7f5ffc7b1310>
+net parameters: 5,008,395
+net to cpu
+net init
+Network: MultiscaleNetwork(
+  scales=3 / 3 nets / 3 ps
+  (sub_rgb_mean): MeanShift(3, 3, kernel_size=(1, 1), stride=(1, 1))
+  (heads): ModuleList(
+    (0): RGBHead(MeanShift//Head(C=3))
+    (1): Head(Conv(64))
+    (2): Head(Conv(64))
+  )
+  (nets): ModuleList(
+    (0): Net(
+      (enc): EDSRLikeEnc(
+        Levels=-1.0,-0.9,-0.8,-0.8,-0.7,-0.6,-0.5,-0.4,-0.3,-0.2,-0.2,-0.1,0.0,0.1,0.2,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.8,0.9,1.0
+        (down): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
+        (body): Sequential(
+          (0): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (1): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (2): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (3): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (4): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (5): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (6): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (7): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (8): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        )
+        (to_q): Sequential(
+          (0): Conv2d(64, 5, kernel_size=(1, 1), stride=(1, 1))
+          (1): HistogramPlot()
+        )
+        (q): Quantizer(sigma=2)
+      )
+      (dec): EDSRDec(
+        (head): Conv2d(5, 64, kernel_size=(1, 1), stride=(1, 1))
+        (body): Sequential(
+          (0): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (1): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (2): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (3): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (4): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (5): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (6): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (7): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (8): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        )
+        (tail): Upsampler(
+          (0): Conv2d(64, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (1): PixelShuffle(upscale_factor=2)
+        )
+      )
+    )
+    (1): Net(
+      (enc): EDSRLikeEnc(
+        Levels=-1.0,-0.9,-0.8,-0.8,-0.7,-0.6,-0.5,-0.4,-0.3,-0.2,-0.2,-0.1,0.0,0.1,0.2,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.8,0.9,1.0
+        (down): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
+        (body): Sequential(
+          (0): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (1): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (2): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (3): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (4): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (5): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (6): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (7): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (8): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        )
+        (to_q): Sequential(
+          (0): Conv2d(64, 5, kernel_size=(1, 1), stride=(1, 1))
+          (1): HistogramPlot()
+        )
+        (q): Quantizer(sigma=2)
+      )
+      (dec): EDSRDec(
+        (head): Conv2d(5, 64, kernel_size=(1, 1), stride=(1, 1))
+        (body): Sequential(
+          (0): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (1): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (2): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (3): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (4): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (5): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (6): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (7): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (8): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        )
+        (tail): Upsampler(
+          (0): Conv2d(64, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (1): PixelShuffle(upscale_factor=2)
+        )
+      )
+    )
+    (2): Net(
+      (enc): EDSRLikeEnc(
+        Levels=-1.0,-0.9,-0.8,-0.8,-0.7,-0.6,-0.5,-0.4,-0.3,-0.2,-0.2,-0.1,0.0,0.1,0.2,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.8,0.9,1.0
+        (down): Conv2d(64, 64, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2))
+        (body): Sequential(
+          (0): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (1): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (2): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (3): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (4): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (5): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (6): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (7): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (8): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        )
+        (to_q): Sequential(
+          (0): Conv2d(64, 5, kernel_size=(1, 1), stride=(1, 1))
+          (1): HistogramPlot()
+        )
+        (q): Quantizer(sigma=2)
+      )
+      (dec): EDSRDec(
+        (head): Conv2d(5, 64, kernel_size=(1, 1), stride=(1, 1))
+        (body): Sequential(
+          (0): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (1): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (2): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (3): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (4): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (5): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (6): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (7): ResBlock(Conv(64x3)/Act/Conv(64x3))
+          (8): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        )
+        (tail): Upsampler(
+          (0): Conv2d(64, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+          (1): PixelShuffle(upscale_factor=2)
+        )
+      )
+    )
+  )
+  (prob_clfs): ModuleList(
+    (0): AtrousProbabilityClassifier(C=3; K=10; Kp=120; rates=1,2,4)
+    (1): AtrousProbabilityClassifier(C=5; K=10; Kp=150; rates=1,2,4)
+    (2): AtrousProbabilityClassifier(C=5; K=10; Kp=150; rates=1,2,4)
+  )
+)
+--------------------------------------------------------------------------------
+Created log_dir/1213_2021 cr oi...
+Checkpoints will be saved to log_dir/1213_2021 cr oi/ckpts
+Creating float32 buffer for histo/enc_1_after_1x1: 10x20480
+Creating float32 buffer for histo/enc_2_after_1x1: 10x5120
+Creating float32 buffer for histo/enc_3_after_1x1: 10x1280
+>> saving sampled to: log_dir/1213_2021 cr oi/train_sampled/000000
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000000/000000_gt.png
+----------------------------------------
+- Sampling []
+----------------------------------------
+2: Feeding encoder output to decoder
+1: Feeding encoder output to decoder
+0: Feeding encoder output to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000000/000000_rgb.png
+----------------------------------------
+- Sampling [0]
+----------------------------------------
+2: Feeding encoder output to decoder
+1: Feeding encoder output to decoder
+1: sampling N5HW for next scale
+0: Feeding sampled to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000000/000000_rgb+bn0.png
+----------------------------------------
+- Sampling [0, 1]
+----------------------------------------
+2: Feeding encoder output to decoder
+2: sampling N5HW for next scale
+1: Feeding sampled to decoder
+1: sampling N5HW for next scale
+0: Feeding sampled to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000000/000000_rgb+bn0+bn1.png
+>> saving sampled to: log_dir/1213_2021 cr oi/train_sampled/000100
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000100/000100_gt.png
+----------------------------------------
+- Sampling []
+----------------------------------------
+2: Feeding encoder output to decoder
+1: Feeding encoder output to decoder
+0: Feeding encoder output to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000100/000100_rgb.png
+----------------------------------------
+- Sampling [0]
+----------------------------------------
+2: Feeding encoder output to decoder
+1: Feeding encoder output to decoder
+1: sampling N5HW for next scale
+0: Feeding sampled to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000100/000100_rgb+bn0.png
+----------------------------------------
+- Sampling [0, 1]
+----------------------------------------
+2: Feeding encoder output to decoder
+2: sampling N5HW for next scale
+1: Feeding sampled to decoder
+1: sampling N5HW for next scale
+0: Feeding sampled to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000100/000100_rgb+bn0+bn1.png
+1213_2021    100: bpsp 9.299e+00 | loss 9.178e+00 // 1.191 img/s [3.51e-02 s/batch load]
+>> saving sampled to: log_dir/1213_2021 cr oi/train_sampled/000200
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000200/000200_gt.png
+----------------------------------------
+- Sampling []
+----------------------------------------
+2: Feeding encoder output to decoder
+1: Feeding encoder output to decoder
+0: Feeding encoder output to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000200/000200_rgb.png
+----------------------------------------
+- Sampling [0]
+----------------------------------------
+2: Feeding encoder output to decoder
+1: Feeding encoder output to decoder
+1: sampling N5HW for next scale
+0: Feeding sampled to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000200/000200_rgb+bn0.png
+----------------------------------------
+- Sampling [0, 1]
+----------------------------------------
+2: Feeding encoder output to decoder
+2: sampling N5HW for next scale
+1: Feeding sampled to decoder
+1: sampling N5HW for next scale
+0: Feeding sampled to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000200/000200_rgb+bn0+bn1.png
+1213_2021    200: bpsp 9.440e+00 | loss 9.319e+00 // 1.216 img/s [3.56e-02 s/batch load]
+>> saving sampled to: log_dir/1213_2021 cr oi/train_sampled/000300
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000300/000300_gt.png
+----------------------------------------
+- Sampling []
+----------------------------------------
+2: Feeding encoder output to decoder
+1: Feeding encoder output to decoder
+0: Feeding encoder output to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000300/000300_rgb.png
+----------------------------------------
+- Sampling [0]
+----------------------------------------
+2: Feeding encoder output to decoder
+1: Feeding encoder output to decoder
+1: sampling N5HW for next scale
+0: Feeding sampled to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000300/000300_rgb+bn0.png
+----------------------------------------
+- Sampling [0, 1]
+----------------------------------------
+2: Feeding encoder output to decoder
+2: sampling N5HW for next scale
+1: Feeding sampled to decoder
+1: sampling N5HW for next scale
+0: Feeding sampled to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000300/000300_rgb+bn0+bn1.png
+1213_2021    300: bpsp 9.357e+00 | loss 9.236e+00 // 1.199 img/s [3.69e-02 s/batch load]
+>> saving sampled to: log_dir/1213_2021 cr oi/train_sampled/000400
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000400/000400_gt.png
+----------------------------------------
+- Sampling []
+----------------------------------------
+2: Feeding encoder output to decoder
+1: Feeding encoder output to decoder
+0: Feeding encoder output to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000400/000400_rgb.png
+----------------------------------------
+- Sampling [0]
+----------------------------------------
+2: Feeding encoder output to decoder
+1: Feeding encoder output to decoder
+1: sampling N5HW for next scale
+0: Feeding sampled to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000400/000400_rgb+bn0.png
+----------------------------------------
+- Sampling [0, 1]
+----------------------------------------
+2: Feeding encoder output to decoder
+2: sampling N5HW for next scale
+1: Feeding sampled to decoder
+1: sampling N5HW for next scale
+0: Feeding sampled to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000400/000400_rgb+bn0+bn1.png
+1213_2021    400: bpsp 8.806e+00 | loss 8.686e+00 // 1.191 img/s [3.59e-02 s/batch load]
+>> saving sampled to: log_dir/1213_2021 cr oi/train_sampled/000500
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000500/000500_gt.png
+----------------------------------------
+- Sampling []
+----------------------------------------
+2: Feeding encoder output to decoder
+1: Feeding encoder output to decoder
+0: Feeding encoder output to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000500/000500_rgb.png
+----------------------------------------
+- Sampling [0]
+----------------------------------------
+2: Feeding encoder output to decoder
+1: Feeding encoder output to decoder
+1: sampling N5HW for next scale
+0: Feeding sampled to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000500/000500_rgb+bn0.png
+----------------------------------------
+- Sampling [0, 1]
+----------------------------------------
+2: Feeding encoder output to decoder
+2: sampling N5HW for next scale
+1: Feeding sampled to decoder
+1: sampling N5HW for next scale
+0: Feeding sampled to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000500/000500_rgb+bn0+bn1.png
+1213_2021    500: bpsp 9.207e+00 | loss 9.086e+00 // 1.277 img/s [3.67e-02 s/batch load]
+-----------------------------------
+   500 | bpsp=9.313 | (1.269 s/img)
+-----------------------------------
+>> saving sampled to: log_dir/1213_2021 cr oi/train_sampled/000600
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000600/000600_gt.png
+----------------------------------------
+- Sampling []
+----------------------------------------
+2: Feeding encoder output to decoder
+1: Feeding encoder output to decoder
+0: Feeding encoder output to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000600/000600_rgb.png
+----------------------------------------
+- Sampling [0]
+----------------------------------------
+2: Feeding encoder output to decoder
+1: Feeding encoder output to decoder
+1: sampling N5HW for next scale
+0: Feeding sampled to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000600/000600_rgb+bn0.png
+----------------------------------------
+- Sampling [0, 1]
+----------------------------------------
+2: Feeding encoder output to decoder
+2: sampling N5HW for next scale
+1: Feeding sampled to decoder
+1: sampling N5HW for next scale
+0: Feeding sampled to decoder
+0: sampling N3HW for next scale
+[save_img] img: (128, 128, 3)  | out_p: log_dir/1213_2021 cr oi/train_sampled/000600/000600_rgb+bn0+bn1.png
+1213_2021    600: bpsp 9.253e+00 | loss 9.132e+00 // 1.249 img/s [3.68e-02 s/batch load]

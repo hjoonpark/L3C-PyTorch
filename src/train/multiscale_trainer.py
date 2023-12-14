@@ -38,6 +38,7 @@ from helpers.saver import Saver
 from train import lr_schedule
 from train.train_restorer import TrainRestorer
 from train.trainer import LogConfig, Trainer
+from test.image_saver import ImageSaver
 
 class MultiscaleTrainer(Trainer):
     def __init__(self,
@@ -108,6 +109,8 @@ class MultiscaleTrainer(Trainer):
         super(MultiscaleTrainer, self).__init__(dl_train, dl_val, [self.optim], net, sw,
                                                 max_epochs=self.config_dl.max_epochs,
                                                 log_config=log_config, saver=saver, skip_to_itr=skip_to_itr)
+
+        self.image_saver = ImageSaver(os.path.join(self.log_dir, "train_sampled"))
 
     def modules_to_save(self):
         return {'net': self.blueprint.net,
@@ -198,6 +201,29 @@ class MultiscaleTrainer(Trainer):
             values['loss'] = loss_pc
             values['bpsp'] = sum(nonrecursive_bpsps)
 
+            if i % 100 == 0:
+                with open("output_plots/losses.txt", "a+") as f:
+                    f.write("step={} loss={} bpsp={}\n".format(i, values.values['loss'], values.values['bpsp']))
+
+            if i % 1000 == 0:
+                sample = True
+                img_batch = img_batch[0].unsqueeze(0)
+                if sample:
+                    # JP: save ground truth
+                    save_folder = "{:06d}".format(i)
+                    sample_save_dir = os.path.join(self.image_saver.out_dir, save_folder)
+                    os.makedirs(sample_save_dir, exist_ok=True)
+                    print(">> saving sampled to: {}".format(sample_save_dir))
+
+                    # JP: save ground truth
+                    self.image_saver.save_img(img_batch, os.path.join(save_folder, '{:06d}_gt.png'.format(i)))
+
+                    # sample
+                    for style, sample_scales in (('rgb', []),               # Sample RGB scale (final scale)
+                                                ('rgb+bn0', [0]),          # Sample RGB + z^(1)
+                                                ('rgb+bn0+bn1', [0, 1])):  # Sample RGB + z^(1) + z^(2)
+                        sampled = self.blueprint.sample_forward(img_batch, sample_scales)
+                        self.image_saver.save_img(sampled, os.path.join(save_folder, '{:06d}_{}.png'.format(i, style)))
         if not log:
             return
 

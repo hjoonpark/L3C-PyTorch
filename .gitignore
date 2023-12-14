@@ -1,4 +1,7 @@
 log_dir/
+output*/
+test_sampled/
+data/*_original/
 
 .DS_Store
 .idea/

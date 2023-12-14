@@ -44,6 +44,7 @@ class ImageSaver(object):
         if convert_to_image:
             img = to_image(img.type(torch.uint8))
         out_p = self.get_save_p(filename)
+        print("[save_img] img:", img.shape, " | out_p:", out_p, )
         Image.fromarray(img).save(out_p)
         return out_p
 

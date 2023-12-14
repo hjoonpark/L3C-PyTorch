@@ -122,7 +122,7 @@ class Trainer(object):
 
         try:
             for epoch in (range(self.max_epochs) if self.max_epochs else itertools.count()):
-                self.print_epoch_sep(epoch)
+                # self.print_epoch_sep(epoch)
                 self.prepare_for_epoch(epoch)
                 t = TimedIterator(dl_train_it.iterator(epoch))
                 for i, img_batch in t:

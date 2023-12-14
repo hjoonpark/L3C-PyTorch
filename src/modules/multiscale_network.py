@@ -283,7 +283,8 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
         inp = x
         enc_outs = []
 
-        save_plot = self.iter % 100 == 0
+        save_plot = False
+        # save_plot = self.iter % 100 == 0
         self.iter += 1
         
         if save_plot:

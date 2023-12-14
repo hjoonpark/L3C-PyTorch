@@ -1,5 +1,5 @@
-batchsize_train = 30
-batchsize_val = 30
+batchsize_train = 1
+batchsize_val = 1
 crop_size = 128
 
 max_epochs = None
@@ -9,5 +9,5 @@ train_imgs_glob = '/nobackup/joon/1_Projects/L3C-PyTorch/data/train_oi'
 val_glob = '/nobackup/joon/1_Projects/L3C-PyTorch/data/val_oi'
 
 val_glob_min_size = None  # for cache_p
-num_val_batches = 5
+num_val_batches = 1
 
