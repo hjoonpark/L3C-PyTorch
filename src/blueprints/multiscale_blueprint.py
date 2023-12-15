@@ -96,8 +96,8 @@ class MultiscaleBlueprint(vis.summarizable_module.SummarizableModule):
         loss_pc = total_bpsp_without_final
         return MultiscaleLoss(loss_pc, nonrecursive_bpsps, recursive_bpsps)
 
-    def sample_forward(self, in_batch, sample_scales, partial_final=None):
-        return self.net.sample_forward(in_batch, self.losses, sample_scales, partial_final)
+    def sample_forward(self, in_batch, sample_scales, partial_final=None, name_prefix=""):
+        return self.net.sample_forward(in_batch, self.losses, sample_scales, partial_final, name_prefix=name_prefix)
 
     @staticmethod
     def add_image_summaries(sw, out: Out, global_step, prefix):

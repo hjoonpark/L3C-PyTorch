@@ -58,7 +58,7 @@ def subplot(fig, R, C, n, I_in, name):
     batch_idx = 0
     ax = fig.add_subplot(R, C, n)
     I = I_in[batch_idx, :3, :, :].detach().cpu().numpy().transpose(1, 2, 0)
-    ax.imshow(I)
+    ax.imshow(I, cmap='gray')
     ax.set_title("{} {}\n({:.1f}, {:.1f}) {}".format(name, list(I_in.shape), I_in.min().item(), I_in.max().item(), I_in.dtype))
 
 
@@ -289,8 +289,8 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
         inp = x
         enc_outs = []
 
-        save_plot = False
-        # save_plot = self.iter % 100 == 0
+        # save_plot = True
+        save_plot = self.iter % 1000 == 0
         self.iter += 1
         
         if save_plot:
@@ -358,9 +358,9 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
                 subplot(fig, R, C, C*scale+6, dec_out.F, f"[{scale}] dec_out.F")
 
         if save_plot:
-            save_path = os.path.join(save_dir, f"forward_{self.iter}.jpg")
+            save_path = os.path.join(save_dir, f"forward_{self.iter:06d}.jpg")
             plt.tight_layout()
-            plt.savefig(save_path, dpi=150)
+            plt.savefig(save_path, dpi=300)
             plt.close()
             print(save_path)
 
@@ -389,7 +389,7 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
     # Sampling -----------------------------------------------------------------------
 
 
-    def sample_forward(self, x, losses: Losses, sample_scales, partial_final=None, auto_recurse=0):
+    def sample_forward(self, x, losses: Losses, sample_scales, partial_final=None, auto_recurse=0, name_prefix=""):
         """
         :param x: image, NCHW, [0, 255]
         :return: Out
@@ -403,9 +403,9 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
 
         forward_scales = list(range(self.scales)) + [-1 for _ in range(auto_recurse)]
         x = self.sub_rgb_mean(x)  # something like -128..128 but not really
-        return self._sample_forward(x, forward_scales, losses, sample_scales, partial_final)
+        return self._sample_forward(x, forward_scales, losses, sample_scales, partial_final, name_prefix=name_prefix)
 
-    def _sample_forward(self, x, forward_scales, losses: Losses, sample_scales, partial_final=None):
+    def _sample_forward(self, x, forward_scales, losses: Losses, sample_scales, partial_final=None, name_prefix=""):
         """
         :param x:
         :param forward_scales:
@@ -416,9 +416,9 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
         # print("JP ", "*"*50, "sample_forward")
         inp = x
         
-        # plot = True
-        # save_dir = "sampled_test_images"
-        # os.makedirs(save_dir, exist_ok=True)
+        plot = True
+        save_dir = "sampled_images"
+        os.makedirs(save_dir, exist_ok=True)
 
         # if plot:
         #     n_scales = len(sample_scales)
@@ -458,6 +458,12 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
         # set if self._fuse_feat
         features_to_fuse = None
 
+        # plot input/output of decoders
+        if plot:
+            L = 5
+            n_channel = 5
+            fig = plt.figure(figsize=(L*n_channel, L*len(forward_scales)))
+
         for scale in reversed(forward_scales):
             loss_dmm = losses.loss_dmol_rgb if scale == 0 else losses.loss_dmol_n
             C = Cs[scale]
@@ -482,8 +488,17 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
             else:
                 # print('{}: Feeding encoder output to decoder'.format(scale))
                 decoder_input = enc_outs[scale].bn_q
+            
+            if plot:
+                I = decoder_input.detach().numpy().squeeze()
+                for c in range(I.shape[0]):
+                    i = 2*scale*n_channel+c+1
+                    # print(">> input subplot({}, {}, {})".format(2*len(forward_scales), n_channel, i))
+                    ax = fig.add_subplot(2*len(forward_scales), n_channel, i)
+                    ax.imshow(I[c], cmap='gray')
+                    ax.set_title("dec_input\nscale={} channel={}".format(scale, c))
 
-            # print("    decoder_input:", decoder_input.shape)
+            # print("  decoder_input:", decoder_input.shape)
             dec_out = net.dec(decoder_input, features_to_fuse)
             if self._fuse_feat:
                 features_to_fuse, = dec_out  # unpack F
@@ -492,8 +507,23 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
             if scale == 0 or scale - 1 in sample_scales:
                 # print('{}: sampling N{}HW for next scale'.format(scale, C))
                 prev_x = loss_dmm.sample(P, C=C)
-        # print("prev_x:", prev_x.shape)
-        # print("JP ", "*"*50, "sample_forward DONE")
+                # print("    prev_x:", prev_x.shape)
+
+                if plot:
+                    I = prev_x.detach().numpy().squeeze()
+                    for c in range(I.shape[0]):
+                        i = 2*scale*n_channel+n_channel+c+1
+                        # print(">> prev_x subplot({}, {}, {})".format(2*len(forward_scales), n_channel, i)) 
+                        ax = fig.add_subplot(2*len(forward_scales), n_channel, i)
+                        ax.imshow(I[c], cmap='gray')
+                        ax.set_title("prev_x\nchannel={}".format(c))
+
+        save_path = os.path.join(save_dir, "{}_{}.jpg".format(name_prefix, len(sample_scales)))
+        plt.tight_layout()
+        plt.savefig(save_path, dpi=300)
+        plt.close()
+        print(">> Saved:", save_path)
+
         return prev_x
 
 

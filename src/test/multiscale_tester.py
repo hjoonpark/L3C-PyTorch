@@ -274,7 +274,7 @@ class MultiscaleTester(object):
         print("-"*10, "self._test")
 
         metric_name = 'bpsp recursive' if self.recursive else 'bpsp'
-        print("  metric_name:", metric_name)
+        # print("  metric_name:", metric_name)
         test_result = TestResult(metric_name)
 
         # If we sample, we store the result with a ImageSaver.
@@ -310,13 +310,13 @@ class MultiscaleTester(object):
                     print(log)
                     continue
 
-            for k, v in img.items():
-                if torch.is_tensor(v):
-                    print("  img[{}]: {}".format(k, v.shape))
-                else:
-                    print("  img[{}]: {}".format(k, v))
+            # for k, v in img.items():
+            #     if torch.is_tensor(v):
+            #         print("  img[{}]: {}".format(k, v.shape))
+            #     else:
+            #         print("  img[{}]: {}".format(k, v))
             raw_img_uint8 = img["raw"].unsqueeze(0)  # Full resolution image, !CHW
-            print("raw_img_uint8:", raw_img_uint8.shape, "({:.2f}, {:.2f}) {}".format(raw_img_uint8.min(), raw_img_uint8.max(), raw_img_uint8.dtype))
+            # print("raw_img_uint8:", raw_img_uint8.shape, "({:.2f}, {:.2f}) {}".format(raw_img_uint8.min(), raw_img_uint8.max(), raw_img_uint8.dtype))
 
             # Make sure we count bpsp of different crops of an image correctly.
             combinator = auto_crop.CropLossCombinator()
@@ -324,14 +324,14 @@ class MultiscaleTester(object):
             num_crops_img = 0
 
             for raw_img_uint8_crop in auto_crop.iter_crops(raw_img_uint8):
-                print("raw_img_uint8_crop:", raw_img_uint8_crop.shape, raw_img_uint8_crop.min(), raw_img_uint8_crop.max(), raw_img_uint8_crop.dtype)
+                # print("raw_img_uint8_crop:", raw_img_uint8_crop.shape, raw_img_uint8_crop.min(), raw_img_uint8_crop.max(), raw_img_uint8_crop.dtype)
                 # We have to pad images not divisible by (2 ** num_scales), because we downsample num_scales-times.
                 # To get the correct bpsp, we have to use, num_subpixels_before_pad,
                 #   see `get_loss` in multiscale_blueprint.py
                 num_subpixels_before_pad = np.prod(raw_img_uint8_crop.shape)
-                print("self._padding_fac():", self._padding_fac())
+                # print("self._padding_fac():", self._padding_fac())
                 img_batch, _ = self.blueprint.unpack_batch_pad(raw_img_uint8_crop, fac=self._padding_fac())
-                print("  img_batch:", img_batch.shape, "{:.2f}, {:.2f} {}".format(img_batch.min(), img_batch.max(), img_batch.dtype))
+                # print("  img_batch:", img_batch.shape, "{:.2f}, {:.2f} {}".format(img_batch.min(), img_batch.max(), img_batch.dtype))
 
                 out = self.blueprint.forward(img_batch, self.recursive)
                 
@@ -455,9 +455,10 @@ class MultiscaleTester(object):
         # Store ground truth for comparison
         image_saver.save_img(img_batch, '{}_{:.3f}_gt.png'.format(save_prefix, sum(bpsps)))
         for style, sample_scales in (('rgb', []),               # Sample RGB scale (final scale)
-                                     ('rgb+bn0', [0]),          # Sample RGB + z^(1)
-                                     ('rgb+bn0+bn1', [0, 1])):  # Sample RGB + z^(1) + z^(2)
-            sampled = self.blueprint.sample_forward(img_batch, sample_scales)
+                                    #  ('rgb+bn0', [0]),          # Sample RGB + z^(1)
+                                    #  ('rgb+bn0+bn1', [0, 1])
+                                     ):  # Sample RGB + z^(1) + z^(2)
+            sampled = self.blueprint.sample_forward(img_batch, sample_scales, epoch="test")
             print("sampled:", sampled.shape)
             bpsp_sample = sum(bpsps[len(sample_scales) + 1:])
             image_saver.save_img(sampled, '{}_{}_{:.3f}.png'.format(save_prefix, style, bpsp_sample))

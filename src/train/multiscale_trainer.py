@@ -191,7 +191,29 @@ class MultiscaleTrainer(Trainer):
             print("iter {}".format(i))
 
         with self.time_accumulator.execute():
+            self.net.train()
             idxs, img_batch, s = self.blueprint.unpack(batch)
+
+            with self.summarizer.maybe_enable(prefix='train', flag=log, global_step=i):
+                out = self.blueprint.forward(img_batch)
+
+            with self.summarizer.maybe_enable(prefix='train', flag=log_heavy, global_step=i):
+                loss_out = self.blueprint.get_loss(out)
+                loss_pc = loss_out.loss_pc
+                nonrecursive_bpsps = loss_out.nonrecursive_bpsps
+
+            total_loss = loss_pc
+            total_loss.backward()
+            self.optim.step()
+
+            values['loss'] = loss_pc
+            values['bpsp'] = sum(nonrecursive_bpsps)
+
+            self.net.eval()
+
+            if i % 100 == 0:
+                with open("output_plots/losses.txt", "a+") as f:
+                    f.write("step={} loss={} bpsp={}\n".format(i, values.values['loss'], values.values['bpsp']))
 
             # SAMPLE training data crop (3, 128, 128)
             if i % 1000 == 0:
@@ -210,9 +232,10 @@ class MultiscaleTrainer(Trainer):
 
                     # sample
                     for style, sample_scales in (('rgb', []),               # Sample RGB scale (final scale)
-                                                ('rgb+bn0', [0]),          # Sample RGB + z^(1)
-                                                ('rgb+bn0+bn1', [0, 1])):  # Sample RGB + z^(1) + z^(2)
-                        sampled = self.blueprint.sample_forward(img_batch, sample_scales)
+                                                # ('rgb+bn0', [0]),          # Sample RGB + z^(1)
+                                                # ('rgb+bn0+bn1', [0, 1])
+                                                ):  # Sample RGB + z^(1) + z^(2)
+                        sampled = self.blueprint.sample_forward(img_batch, sample_scales, name_prefix=f"crop_tr_{i}")
                         self.image_saver.save_img(sampled, os.path.join(save_folder, '{:06d}_{}.png'.format(i, style)))
 
                     # -----------------------------------------------                
@@ -224,49 +247,12 @@ class MultiscaleTrainer(Trainer):
 
                     # sample
                     for style, sample_scales in (('rgb', []),               # Sample RGB scale (final scale)
-                                                ('rgb+bn0', [0]),          # Sample RGB + z^(1)
-                                                ('rgb+bn0+bn1', [0, 1])):  # Sample RGB + z^(1) + z^(2)
-                        sampled = self.blueprint.sample_forward(img, sample_scales)
+                                                # ('rgb+bn0', [0]),          # Sample RGB + z^(1)
+                                                # ('rgb+bn0+bn1', [0, 1])
+                                                ):  # Sample RGB + z^(1) + z^(2)
+                        sampled = self.blueprint.sample_forward(img, sample_scales, name_prefix=f"full_val_{i}")
                         self.image_saver.save_img(sampled, os.path.join(save_folder, 'val_{:06d}_{}.png'.format(i, style)))
 
-            with self.summarizer.maybe_enable(prefix='train', flag=log, global_step=i):
-                out = self.blueprint.forward(img_batch)
-
-            with self.summarizer.maybe_enable(prefix='train', flag=log_heavy, global_step=i):
-                loss_out = self.blueprint.get_loss(out)
-                loss_pc = loss_out.loss_pc
-                nonrecursive_bpsps = loss_out.nonrecursive_bpsps
-
-            total_loss = loss_pc
-            total_loss.backward()
-            self.optim.step()
-
-            values['loss'] = loss_pc
-            values['bpsp'] = sum(nonrecursive_bpsps)
-
-            if i % 100 == 0:
-                with open("output_plots/losses.txt", "a+") as f:
-                    f.write("step={} loss={} bpsp={}\n".format(i, values.values['loss'], values.values['bpsp']))
-
-            if i % 1000 == 0:
-                sample = True
-                img_batch = img_batch[0].unsqueeze(0)
-                if sample:
-                    # JP: save ground truth
-                    save_folder = "{:06d}".format(i)
-                    sample_save_dir = os.path.join(self.image_saver.out_dir, save_folder)
-                    os.makedirs(sample_save_dir, exist_ok=True)
-                    print(">> saving sampled to: {}".format(sample_save_dir))
-
-                    # JP: save ground truth
-                    self.image_saver.save_img(img_batch, os.path.join(save_folder, '{:06d}_gt.png'.format(i)))
-
-                    # sample
-                    for style, sample_scales in (('rgb', []),               # Sample RGB scale (final scale)
-                                                ('rgb+bn0', [0]),          # Sample RGB + z^(1)
-                                                ('rgb+bn0+bn1', [0, 1])):  # Sample RGB + z^(1) + z^(2)
-                        sampled = self.blueprint.sample_forward(img_batch, sample_scales)
-                        self.image_saver.save_img(sampled, os.path.join(save_folder, '{:06d}_{}.png'.format(i, style)))
         if not log:
             return
 

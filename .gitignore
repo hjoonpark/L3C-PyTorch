@@ -4,6 +4,7 @@ test_sampled/
 data/*_original/
 *.pkl
 sampled_test_images/
+sampled_images/
 
 .DS_Store
 .idea/
