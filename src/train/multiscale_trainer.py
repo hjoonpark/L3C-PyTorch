@@ -16,7 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with L3C-PyTorch.  If not, see <https://www.gnu.org/licenses/>.
 """
-import os, glob
+import os, glob, collections
 import time
 
 from fjcommon import config_parser
@@ -43,8 +43,24 @@ from train.trainer import LogConfig, Trainer
 from test.image_saver import ImageSaver
 from PIL import Image
 
+from helpers.testset import Testset
+import auto_crop
+import numpy as np
+# --------------------------------------------- #
+# JP
 pil_to_tensor = transforms.Compose([images_loader.IndexImagesDataset.to_tensor_uint8_transform()])
 
+class TestResult(object):
+    def __init__(self, metric_name):
+        self.metric_name = metric_name
+        self.per_img_results = {}
+
+    def __setitem__(self, filename, result):
+        self.per_img_results[filename] = result.item()  # unpack Torch Tensors
+
+    def mean(self):
+        return np.mean(list(self.per_img_results.values()))
+# --------------------------------------------- #
 class MultiscaleTrainer(Trainer):
     def __init__(self,
                  ms_config_p, dl_config_p,
@@ -112,7 +128,22 @@ class MultiscaleTrainer(Trainer):
                                                 max_epochs=self.config_dl.max_epochs,
                                                 log_config=log_config, saver=saver, skip_to_itr=skip_to_itr)
 
+        # JP
+        self.recursive = 0
         self.image_saver = ImageSaver(os.path.join(self.log_dir, "train_sampled"))
+        self.flags = {"crop": None, "sample": self.log_dir, "write_to_files": None}
+        # JP: validation dataset
+        testset = Testset("/nobackup/joon/1_Projects/L3C-PyTorch/data/val_oi", None, None)
+        self.ds_test = self.get_test_dataset(testset)
+
+    def get_test_dataset(self, testset):
+        to_tensor_transform = [images_loader.IndexImagesDataset.to_tensor_uint8_transform()]
+        if self.flags["crop"]:
+            print('*** WARN: Cropping to {}'.format(self.flags["crop"]))
+            to_tensor_transform.insert(0, transforms.CenterCrop(self.flags["crop"]))
+        return images_loader.IndexImagesDataset(
+                images=testset,
+                to_tensor_transform=transforms.Compose(to_tensor_transform))
 
     def modules_to_save(self):
         return {'net': self.blueprint.net,
@@ -191,7 +222,6 @@ class MultiscaleTrainer(Trainer):
             print("iter {}".format(i))
 
         with self.time_accumulator.execute():
-            self.net.train()
             idxs, img_batch, s = self.blueprint.unpack(batch)
 
             with self.summarizer.maybe_enable(prefix='train', flag=log, global_step=i):
@@ -209,13 +239,12 @@ class MultiscaleTrainer(Trainer):
             values['loss'] = loss_pc
             values['bpsp'] = sum(nonrecursive_bpsps)
 
-            self.net.eval()
-
             if i % 100 == 0:
                 with open("output_plots/losses.txt", "a+") as f:
                     f.write("step={} loss={} bpsp={}\n".format(i, values.values['loss'], values.values['bpsp']))
 
             # SAMPLE training data crop (3, 128, 128)
+            self.blueprint.set_eval()
             if i % 1000 == 0:
                 sample = 1
                 img_batch = img_batch[0].unsqueeze(0)
@@ -230,28 +259,37 @@ class MultiscaleTrainer(Trainer):
                     # JP: save ground truth
                     self.image_saver.save_img(img_batch, os.path.join(save_folder, '{:06d}_gt.png'.format(i)))
 
-                    # sample
+                    # sample crop
                     for style, sample_scales in (('rgb', []),               # Sample RGB scale (final scale)
                                                 # ('rgb+bn0', [0]),          # Sample RGB + z^(1)
                                                 # ('rgb+bn0+bn1', [0, 1])
                                                 ):  # Sample RGB + z^(1) + z^(2)
+                        self.blueprint.net.training = False
                         sampled = self.blueprint.sample_forward(img_batch, sample_scales, name_prefix=f"crop_tr_{i}")
+                        self.blueprint.net.training = True
                         self.image_saver.save_img(sampled, os.path.join(save_folder, '{:06d}_{}.png'.format(i, style)))
 
-                    # -----------------------------------------------                
-                    # SAMPLE test data (3, full w, full h)
-                    val_path = glob.glob("../data/val_oi/*.png")[0]
-                    raw_img_uint8_crop = pil_to_tensor(Image.open(val_path)).unsqueeze(0)
-                    img, _ = self.blueprint.unpack_batch_pad(raw_img_uint8_crop, fac=8)
-                    self.image_saver.save_img(img, os.path.join(save_folder, 'val_{:06d}_gt.png'.format(i)))
+                    # SAMPLE a full test image
+                    with torch.no_grad():
+                        result = self._test(self.ds_test)
+                        
+                    # # -----------------------------------------------                
+                    # # SAMPLE test data (3, full w, full h)
+                    # val_path = glob.glob("../data/val_oi/*.png")[0]
+                    # raw_img_uint8_crop = pil_to_tensor(Image.open(val_path)).unsqueeze(0)
+                    # img, _ = self.blueprint.unpack_batch_pad(raw_img_uint8_crop, fac=8)
+                    # self.image_saver.save_img(img, os.path.join(save_folder, 'val_{:06d}_gt.png'.format(i)))
 
-                    # sample
-                    for style, sample_scales in (('rgb', []),               # Sample RGB scale (final scale)
-                                                # ('rgb+bn0', [0]),          # Sample RGB + z^(1)
-                                                # ('rgb+bn0+bn1', [0, 1])
-                                                ):  # Sample RGB + z^(1) + z^(2)
-                        sampled = self.blueprint.sample_forward(img, sample_scales, name_prefix=f"full_val_{i}")
-                        self.image_saver.save_img(sampled, os.path.join(save_folder, 'val_{:06d}_{}.png'.format(i, style)))
+                    # # sample
+                    # for style, sample_scales in (('rgb', []),               # Sample RGB scale (final scale)
+                    #                             # ('rgb+bn0', [0]),          # Sample RGB + z^(1)
+                    #                             # ('rgb+bn0+bn1', [0, 1])
+                    #                             ):  # Sample RGB + z^(1) + z^(2)
+                    #     self.blueprint.net.training = False
+                    #     sampled = self.blueprint.sample_forward(img, sample_scales, name_prefix=f"full_val_{i}")
+                    #     self.blueprint.net.training = True
+                    #     self.image_saver.save_img(sampled, os.path.join(save_folder, 'val_{:06d}_{}.png'.format(i, style)))
+            self.blueprint.set_train()
 
         if not log:
             return
@@ -308,6 +346,103 @@ class MultiscaleTrainer(Trainer):
         sep = '-' * len(output_str)
         print('\n'.join([sep, output_str, sep]))
 
+    def _test(self, ds):
+        print("-"*10, "self._test")
+
+        metric_name = 'bpsp recursive' if self.recursive else 'bpsp'
+        test_result = TestResult(metric_name)
+
+        # If we sample, we store the result with a ImageSaver.
+        if self.flags["sample"]:
+            image_saver = ImageSaver(os.path.join(self.flags["sample"], "sampled_testset"))
+            print('  Will store samples in {}.'.format(image_saver.out_dir))
+        else:
+            image_saver = None
+
+        log = ''
+        one_line_output = not self.flags["sample"]
+        number_of_crops = collections.defaultdict(int)
+
+        for i, img in enumerate(ds):
+            filename = os.path.splitext(os.path.basename(ds.files[img['idx']]))[0]
+
+            # Use arithmetic coding to write to real files, and save time statistics.
+            assert self.flags["write_to_files"] is None
+            if self.flags["write_to_files"]:
+                print('  ***', filename)
+                img_raw = img["raw"].long().unsqueeze(0).to(pe.DEVICE)  # 1CHW
+                with self.times.skip(i == 0):
+                    out_dir = self.flags["write_to_files"]
+                    os.makedirs(out_dir, exist_ok=True)
+                    out_p = os.path.join(out_dir, filename + _FILE_EXT)
+                    # As a side effect, create a time report if --time_report given.
+                    bpsp = self._write_to_file(img_raw, out_p)
+                    test_result[filename] = bpsp
+                    log = (f'{self.log_date}: {filename} ({i: 10d}): '
+                           f'mean {test_result.metric_name}={test_result.mean()}')
+                    print(log)
+                    continue
+
+            raw_img_uint8 = img["raw"].unsqueeze(0)  # Full resolution image, !CHW
+
+            # Make sure we count bpsp of different crops of an image correctly.
+            combinator = auto_crop.CropLossCombinator()
+
+            num_crops_img = 0
+
+            for raw_img_uint8_crop in auto_crop.iter_crops(raw_img_uint8):
+                # We have to pad images not divisible by (2 ** num_scales), because we downsample num_scales-times.
+                # To get the correct bpsp, we have to use, num_subpixels_before_pad,
+                #   see `get_loss` in multiscale_blueprint.py
+                num_subpixels_before_pad = np.prod(raw_img_uint8_crop.shape)
+                img_batch, _ = self.blueprint.unpack_batch_pad(raw_img_uint8_crop, fac=self._padding_fac())
+
+                out = self.blueprint.forward(img_batch, self.recursive)
+                
+                loss_out: MultiscaleLoss = self.blueprint.get_loss(
+                    out, num_subpixels_before_pad=num_subpixels_before_pad)
+
+                if self.flags["sample"]:  # TODO not tested with multiple crops
+                    self._sample(loss_out.nonrecursive_bpsps, img_batch, image_saver, '{}_{}'.format(i, filename))
+
+                if self.recursive:
+                    bpsp = sum(loss_out.recursive_bpsps)
+                else:
+                    bpsp = sum(loss_out.nonrecursive_bpsps)
+
+                combinator.add(bpsp.item(), num_subpixels_before_pad)
+                num_crops_img += 1
+
+            number_of_crops[num_crops_img] += 1
+            test_result[filename] = combinator.get_bpsp()
+
+            log = f'{self.log_date}: {filename} ({i: 10d}): mean {test_result.metric_name}={test_result.mean()}'
+            number_of_crops_str = '|'.join(
+                f'{count}:{freq}' for count, freq in sorted(number_of_crops.items(), reverse=True))
+            log += ' crops:freq -> ' + number_of_crops_str
+        if self.flags["write_to_files"]:
+            return None
+        return test_result
+
+    def _sample(self, bpsps, img_batch, image_saver, save_prefix):
+        # Make sure folder does not already contain samples for this file.
+        if image_saver.file_starting_with_exists(save_prefix):
+            raise FileExistsError('  Previous sample outputs found in {}. Please remove.'.format(
+                    image_saver.out_dir))
+        # Store ground truth for comparison
+        image_saver.save_img(img_batch, '{}_{:.3f}_gt.png'.format(save_prefix, sum(bpsps)))
+        for style, sample_scales in (('rgb', []),               # Sample RGB scale (final scale)
+                                    #  ('rgb+bn0', [0]),          # Sample RGB + z^(1)
+                                    #  ('rgb+bn0+bn1', [0, 1])
+                                     ):  # Sample RGB + z^(1) + z^(2)
+            sampled = self.blueprint.sample_forward(img_batch, sample_scales, name_prefix="test")
+            bpsp_sample = sum(bpsps[len(sample_scales) + 1:])
+            image_saver.save_img(sampled, '{}_{}_{:.3f}.png'.format(save_prefix, style, bpsp_sample))
+
+    def _padding_fac(self):
+        if self.recursive:
+            return 2 ** (self.recursive + 1)
+        return 2 ** self.config_ms.num_scales
 
 class Values(object):
     """

@@ -106,7 +106,6 @@ class TestOutputCache(object):
 # dataset_id comes from Testset.id, which is 'FOLDERNAME_NUMIMGS'
 TestID = namedtuple('TestID', ['dataset_id', 'restore_itr'])
 
-
 class TestResult(object):
     def __init__(self, metric_name):
         self.metric_name = metric_name
@@ -117,8 +116,6 @@ class TestResult(object):
 
     def mean(self):
         return np.mean(list(self.per_img_results.values()))
-
-
 
 def _parse_recursive_flag(recursive, config_ms):
     if not config_ms.rgb_bicubic_baseline:
@@ -131,7 +128,6 @@ def _parse_recursive_flag(recursive, config_ms):
     except ValueError:
         return 0
 
-
 def _clean_cuda_cache(i):
     if i % 25 == 0 and torch.cuda.is_available():
         # print()
@@ -141,7 +137,6 @@ def _clean_cuda_cache(i):
         #         torch.cuda.max_memory_cached(),
         #         torch.cuda.memory_cached()))
         torch.cuda.empty_cache()
-
 
 def check_correct_torchac_backend_available():
     try:
@@ -154,7 +149,6 @@ def check_correct_torchac_backend_available():
     if not pe.CUDA_AVAILABLE and not torchac.CPU_SUPPORTED:
         raise ValueError('No CUDA found but torchac_backend_cpu not compiled. '
                          'Compile it or set CUDA_VISIBLE_DEVICES appropriately. See also README.')
-
 
 class MultiscaleTester(object):
     def __init__(self, log_date, flags, restore_itr, l3c=False):
@@ -262,7 +256,6 @@ class MultiscaleTester(object):
 
     def get_test_dataset(self, testset):
         to_tensor_transform = [IndexImagesDataset.to_tensor_uint8_transform()]
-        # print("self.flags.crop:", self.flags.crop)
         if self.flags.crop:
             print('*** WARN: Cropping to {}'.format(self.flags.crop))
             to_tensor_transform.insert(0, transforms.CenterCrop(self.flags.crop))
@@ -274,7 +267,6 @@ class MultiscaleTester(object):
         print("-"*10, "self._test")
 
         metric_name = 'bpsp recursive' if self.recursive else 'bpsp'
-        # print("  metric_name:", metric_name)
         test_result = TestResult(metric_name)
 
         # If we sample, we store the result with a ImageSaver.

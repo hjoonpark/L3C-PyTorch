@@ -55,6 +55,11 @@ class MultiscaleBlueprint(vis.summarizable_module.SummarizableModule):
         self.losses.loss_dmol_rgb.eval()
         self.losses.loss_dmol_n.eval()
 
+    def set_train(self):
+        self.net.train()
+        self.losses.loss_dmol_rgb.train()
+        self.losses.loss_dmol_n.train()
+
     def forward(self, in_batch, auto_recurse=0) -> Out:
         """
         :param in_batch: NCHW 0..255 float

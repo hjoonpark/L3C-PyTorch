@@ -107,6 +107,7 @@ def main():
                         # Append flags.crop to ID so that it creates unique entry in cache
                         append_id=f'_crop{flags.crop}' if flags.crop else None)
                 for images_dir_or_image in flags.images.split(',')]
+
     if flags.match_filenames:
         for ts in testsets:
             ts.filter_filenames(flags.match_filenames)
