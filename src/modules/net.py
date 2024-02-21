@@ -86,6 +86,9 @@ def new_levels(L, initial_levels):
     return torch.tensor(levels, requires_grad=False)
 
 
+def str_(x):
+    return "{} ({:.2f}, {:.2f}) {}".format(x.shape, x.min().item(), x.max().item(), x.dtype)
+
 class EDSRLikeEnc(vis.summarizable_module.SummarizableModule):
     def __init__(self, config_ms, scale):
         super(EDSRLikeEnc, self).__init__()
@@ -147,6 +150,8 @@ class EDSRLikeEnc(vis.summarizable_module.SummarizableModule):
         # TODO(parallel): To support nn.DataParallel, this must be changed, as it not a tensor
         return EncOut(x_soft, x_hard, symbols_hard, self.L, F)
 
+def to_str(x):
+    return "{} ({:.2f}, {:.2f}) {}".format(x.shape, x.min().item(), x.max().item(), x.dtype)
 
 class EDSRDec(nn.Module):
     def __init__(self, config_ms, scale):
@@ -168,6 +173,7 @@ class EDSRDec(nn.Module):
         
         m_body.append(conv(Cf, Cf, kernel_size))
         self.body = nn.Sequential(*m_body)
+
         self.tail = edsr.Upsampler(conv, 2, Cf, act=False)
 
     def forward(self, x, features_to_fuse=None):
@@ -175,11 +181,22 @@ class EDSRDec(nn.Module):
         :param x: NCHW
         :return:
         """
+        # print()
+        # print()
+        # print("\tinput:", to_str(x))
         x = self.head(x)
+        # print("\tafter head:", to_str(x))
         if features_to_fuse is not None:
             x = x + features_to_fuse
-        x = self.body(x) + x
+            # print("\tfeatures_to_fuse:", to_str(features_to_fuse))
+        # print("\tafter res:", to_str(x))
+        # print(self.body)
+        x_body = self.body(x)
+        # print("\tafter body:", to_str(x_body))
+        x = x_body + x
+        # print("\tafter res:", to_str(x))
         x = self.tail(x)
+        # print("\tafter tail:", to_str(x))
         # TODO(parallel): To support nn.DataParallel, this must be changed, as it not a tensor
         return DecOut(x)
 

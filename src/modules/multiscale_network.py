@@ -176,6 +176,34 @@ class Losses(vis.summarizable_module.SummarizableModule):
         return costs, final_cost_uniform, num_subpixels
 
 
+def plot_images(title, save_path, out):
+    batch_idx = 0
+
+    n_imgs = len(out.keys())
+    L = 3
+    fig = plt.figure(figsize=(L*n_imgs, L))
+
+    n = 1
+    for k, img in out.items():
+        ax = fig.add_subplot(1, n_imgs, n)
+
+        I0 = img.detach().cpu().numpy()[batch_idx].squeeze()
+        I = np.transpose(I0, (1, 2, 0))
+        I = (I-I.min())/(I.max()-I.min())
+        ax.imshow(I)
+
+        tt = "{}\n{} ({:.2f}, {:.2f})".format(k, I0.shape, I0.min(), I0.max())
+        ax.set_title(tt)
+
+        n += 1
+    plt.suptitle(title)
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=150)
+    plt.close()
+
+def str_(x):
+    return "{} ({:.2f}, {:.2f}) {}".format(x.shape, x.min().item(), x.max().item(), x.dtype)
+
 class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
     def __init__(self, config_ms):
         super(MultiscaleNetwork, self).__init__()
@@ -241,6 +269,8 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
         :param auto_recurse: int, how many times the last scales should be applied again.
         :return: Out
         """
+
+        save_dir = "output_plots"
         # Visualize input
         # if self._show_input:
         self.summarizer.register_images('train', {'input': x.to(torch.uint8)})
@@ -248,9 +278,25 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
 
         out = Out(targets_style='S' if self._rgb else 'bn',  # IF RGB baseline, use symbols as targets for loss
                   auto_recursive_from=self.scales if auto_recurse > 0 else None)
+        
+        # save_path = os.path.join(save_dir, "x.png")
+        # out = {"x": x}
+        # plot_images("Input to L3C", save_path, out)
+
         out.append_input_image(x)
 
+        # print("   before sub_rgb_mean: {} ({:.2f}, {:.2f}) {:.4f}".format(x.shape, x.min().item(), x.max().item(), x.mean().item()))
+
         x = self.sub_rgb_mean(x)  # something like -128..128 but not really
+        # pytorch_total_params = sum(p.numel() for p in self.sub_rgb_mean.parameters() if p.requires_grad)
+        # print("pytorch_total_params:", pytorch_total_params)
+
+
+        # save_path = os.path.join(save_dir, "x.png")
+        # out = {"x": x}
+        # plot_images("x sub_rgb_mean", save_path, out)
+
+        # print("   after sub_rgb_mean: {} ({:.2f}, {:.2f}) {:.4f}".format(x.shape, x.min().item(), x.max().item(), x.mean().item()))
         if self._rgb:
             x = x.detach()
         self._forward_with_scales(out, x, forward_scales)
@@ -290,7 +336,8 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
         enc_outs = []
 
         # save_plot = True
-        save_plot = self.iter % 1000 == 0
+        save_plot = False
+        # save_plot = self.iter % 1000 == 0
         self.iter += 1
         
         if save_plot:
@@ -313,10 +360,11 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
         for scale in forward_scales:  # from fine to coarse
             net = self.nets[scale]
             head = self.heads[scale]
-
+            print(head)
             if save_plot:
                 subplot(fig, R, C, C*scale+1, inp, f"[{scale}] inp A")
 
+            print(head)
             inp = head(inp)
 
             if save_plot:
@@ -331,9 +379,7 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
 
             enc_outs.append(enc_out)
             inp = self.get_next_scale_intput(enc_out)  # for next scale
-
         dec_outs = []
-
 
         batch_idx, n_depth = 0, 5
         n = 0
@@ -367,6 +413,7 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
         for scale, enc_out, dec_out in zip(forward_scales, enc_outs, dec_outs):
             prob_clf = self.prob_clfs[scale]
             P = prob_clf(dec_out.F)
+
             out.append(enc_out, P, self.training)
 
     def get_P(self, scale, bn_q, dec_F_prev=None):
@@ -415,6 +462,7 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
         """
         # print("JP ", "*"*50, "sample_forward")
         inp = x
+        # print("   enc_in: {} ({:.2f}, {:.2f}) {:.4f}".format(inp.shape, inp.min().item(), inp.max().item(), inp.mean().item()))
         
         plot = True
         save_dir = "sampled_images"
@@ -444,7 +492,9 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
             # print("  enc_out:")
             # for k, v in enc_out._asdict().items():
             #     if torch.is_tensor(v):
-            #         print("      {}: {}".format(k, v.shape))
+            #         if isinstance(v,torch.FloatTensor):
+            #             print("      {}: ({:.2f}, {:.2f}), {:.4f}".format(k, v.min().item(), v.max().item(), v.mean().item()))
+            #             # print("      {}: {}".format(k, v.dtype))
             #     else:
             #         print("      {}: {}".format(k, v))
 
@@ -452,6 +502,8 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
             enc_outs.append(enc_out)
             inp = self.get_next_scale_intput(enc_out)
             # print("  get_next_scale_intput inp:", inp.shape)
+            x_q = enc_out.F
+            # print("    Enc scale {} | F: ({:.2f}, {:.2f}) {:.4f}".format(scale, x_q.min().item(), x_q.max().item(), x_q.mean().item()))
 
         prev_x = None
 
@@ -464,6 +516,7 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
             n_channel = 5
             fig = plt.figure(figsize=(L*n_channel, L*len(forward_scales)))
 
+        # print("----- decoder forward -----")
         for scale in reversed(forward_scales):
             loss_dmm = losses.loss_dmol_rgb if scale == 0 else losses.loss_dmol_n
             C = Cs[scale]
@@ -499,14 +552,25 @@ class MultiscaleNetwork(vis.summarizable_module.SummarizableModule):
                     ax.set_title("dec_input\nscale={} channel={}".format(scale, c))
 
             # print("  decoder_input:", decoder_input.shape)
+            # print("scale={}, dec_in: {} ({:.2f}, {:.2f}) {:.4f}".format(scale, decoder_input.shape, decoder_input.min().item(), decoder_input.max().item(), decoder_input.mean().item()))
             dec_out = net.dec(decoder_input, features_to_fuse)
             if self._fuse_feat:
                 features_to_fuse, = dec_out  # unpack F
+
+            # print("          dec_out[0]: {} ({:.2f}, {:.2f}) {:.4f}".format(dec_out[0].shape, dec_out[0].min().item(), dec_out[0].max().item(), dec_out[0].mean().item()))
+            # print("prob_clf")
+            # print(prob_clf)
+            # print()
             P = prob_clf(dec_out[0])  # unpack F, torch.jit thing
 
             if scale == 0 or scale - 1 in sample_scales:
                 # print('{}: sampling N{}HW for next scale'.format(scale, C))
+                # print(">> P {} ({:.1f}, {:.1f}) {}".format(P.shape, P.min().item(), P.max().item(), P.dtype))
                 prev_x = loss_dmm.sample(P, C=C)
+                print(">>>>>> scale: {} | x {} ({:.1f}, {:.1f}) {}".format(scale, prev_x.shape, prev_x.min().item(), prev_x.max().item(), prev_x.dtype))
+                # print()
+                # if scale == 0:
+                #     assert 0
                 # print("    prev_x:", prev_x.shape)
 
                 if plot:

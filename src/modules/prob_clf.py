@@ -37,8 +37,8 @@ class AtrousProbabilityClassifier(nn.Module):
                                          kernel_size=config_ms.kernel_size)
         self._repr = f'C={C}; K={K}; Kp={Kp}; rates={atrous_rates_str}'
 
-    def __repr__(self):
-        return f'AtrousProbabilityClassifier({self._repr})'
+    # def __repr__(self):
+    #     return f'AtrousProbabilityClassifier({self._repr})'
 
     def forward(self, x):
         """
@@ -69,6 +69,11 @@ class StackedAtrousConvs(nn.Module):
         return self._extra_repr
 
     def forward(self, x):
+        # print(">>>>>>>>>>>>>>>>>> classifier START")
+        # print("  x: ({:.2f}, {:.2f}) {:.4f}".format(x.min().item(), x.max().item(), x.mean().item()))
         x = torch.cat([atrous(x) for atrous in self.atrous], dim=1)
+        # print("  x: ({:.2f}, {:.2f}) {:.4f}".format(x.min().item(), x.max().item(), x.mean().item()))
         x = self.lin(x)
+        # print("  x: ({:.2f}, {:.2f}) {:.4f}".format(x.min().item(), x.max().item(), x.mean().item()))
+        # print(">>>>>>>>>>>>>>>>>> classifier END")
         return x

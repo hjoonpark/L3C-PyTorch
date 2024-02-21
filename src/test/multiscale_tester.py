@@ -213,6 +213,15 @@ class MultiscaleTester(object):
             from bitcoding.bitcoding import Bitcoding
             self.bc = Bitcoding(self.blueprint, times=no_op.NoOp)
 
+        # n_p, p_val = 0, 0
+        # for name, p in self.blueprint.net.named_parameters():
+        #     if p.requires_grad:
+        #         d = p.data
+        #         # print(f"  {name}:", p.data.shape, "\n\t({:.2f}, {:.2f}) {:.2f}, {:.2f}".format(d.min().item(), d.max().item(), d.mean().item(), d.std().item()))
+        #         p_val += p.sum()
+        #         n_p += 1
+        # print("p_val:", p_val, ", n_p:", n_p)
+        # assert 0
     def _padding_fac(self):
         if self.recursive:
             return 2 ** (self.recursive + 1)

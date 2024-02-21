@@ -85,8 +85,8 @@ class ResBlock(nn.Module):
         res += x
         return res
 
-    def __repr__(self):
-        return f'ResBlock({self._repr})'
+    # def __repr__(self):
+    #     return f'ResBlock({self._repr})'
 
 
 class Upsampler(nn.Sequential):

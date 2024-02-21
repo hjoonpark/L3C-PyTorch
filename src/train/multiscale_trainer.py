@@ -136,6 +136,15 @@ class MultiscaleTrainer(Trainer):
         testset = Testset("/nobackup/joon/1_Projects/L3C-PyTorch/data/val_oi", None, None)
         self.ds_test = self.get_test_dataset(testset)
 
+        # n_p, p_val = 0, 0
+        # for name, p in self.blueprint.net.named_parameters():
+        #     if p.requires_grad:
+        #         d = p.data
+        #         p_val += p.sum()
+        #         n_p += 1
+        #         # print(f"  {name}:", p.data.shape, "\n\t({:.2f}, {:.2f}) {:.2f}, {:.2f}".format(d.min().item(), d.max().item(), d.mean().item(), d.std().item()))
+        # print("p_val:", p_val, ", n_p:", n_p)
+        # assert 0
     def get_test_dataset(self, testset):
         to_tensor_transform = [images_loader.IndexImagesDataset.to_tensor_uint8_transform()]
         if self.flags["crop"]:
@@ -264,15 +273,13 @@ class MultiscaleTrainer(Trainer):
                                                 # ('rgb+bn0', [0]),          # Sample RGB + z^(1)
                                                 # ('rgb+bn0+bn1', [0, 1])
                                                 ):  # Sample RGB + z^(1) + z^(2)
-                        self.blueprint.net.training = False
                         sampled = self.blueprint.sample_forward(img_batch, sample_scales, name_prefix=f"crop_tr_{i}")
-                        self.blueprint.net.training = True
                         self.image_saver.save_img(sampled, os.path.join(save_folder, '{:06d}_{}.png'.format(i, style)))
 
                     # SAMPLE a full test image
                     with torch.no_grad():
                         result = self._test(self.ds_test)
-                        
+
                     # # -----------------------------------------------                
                     # # SAMPLE test data (3, full w, full h)
                     # val_path = glob.glob("../data/val_oi/*.png")[0]
@@ -426,9 +433,9 @@ class MultiscaleTrainer(Trainer):
 
     def _sample(self, bpsps, img_batch, image_saver, save_prefix):
         # Make sure folder does not already contain samples for this file.
-        if image_saver.file_starting_with_exists(save_prefix):
-            raise FileExistsError('  Previous sample outputs found in {}. Please remove.'.format(
-                    image_saver.out_dir))
+        # if image_saver.file_starting_with_exists(save_prefix):
+        #     raise FileExistsError('  Previous sample outputs found in {}. Please remove.'.format(
+        #             image_saver.out_dir))
         # Store ground truth for comparison
         image_saver.save_img(img_batch, '{}_{:.3f}_gt.png'.format(save_prefix, sum(bpsps)))
         for style, sample_scales in (('rgb', []),               # Sample RGB scale (final scale)

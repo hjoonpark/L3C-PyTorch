@@ -171,8 +171,8 @@ class LambdaModule(nn.Module):
         self.forward_lambda = forward_lambda
         self.description = 'LambdaModule({})'.format(name)
 
-    def __repr__(self):
-        return self.description
+    # def __repr__(self):
+    #     return self.description
 
     def forward(self, x):
         return self.forward_lambda(x)
@@ -191,8 +191,8 @@ class ChannelToLogitsTranspose(nn.Module):
         x = x.view(N, self.Lout, self.Cout, H, W)
         return x
 
-    def __repr__(self):
-        return 'ChannelToLogitsTranspose(Cout={}, Lout={})'.format(self.Cout, self.Lout)
+    # def __repr__(self):
+        # return 'ChannelToLogitsTranspose(Cout={}, Lout={})'.format(self.Cout, self.Lout)
 
 
 class LogitsToChannelTranspose(nn.Module):
@@ -205,8 +205,8 @@ class LogitsToChannelTranspose(nn.Module):
         x = x.view(N, C * L, H, W)
         return x
 
-    def __repr__(self):
-        return 'LogitsToChannelTranspose()'
+    # def __repr__(self):
+        # return 'LogitsToChannelTranspose()'
 
 
 def channel_to_logits(x, Cout, Lout):

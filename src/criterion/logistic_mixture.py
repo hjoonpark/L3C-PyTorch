@@ -279,9 +279,11 @@ class DiscretizedMixLogisticLoss(vis.summarizable_module.SummarizableModule):
 
     def _non_shared_sample(self, l, C):
         """ sample from model """
+        # print(">> l:", l.shape, l.min().item(), l.max().item(), l.dtype)
         N, Kp, H, W = l.shape
         K = non_shared_get_K(Kp, C)
         l = l.reshape(N, self._num_params, C, K, H, W)
+        # print("  l: ({:.2f}, {:.2f}) {:.4f}".format(l.min().item(), l.max().item(), l.mean().item()))
 
         logit_probs = l[:, 0, ...]  # NCKHW
 
@@ -301,11 +303,15 @@ class DiscretizedMixLogisticLoss(vis.summarizable_module.SummarizableModule):
         # We use inverse transform sampling. i.e. X~logistic; generate u ~ Unfirom; x = CDF^-1(u),
         #  where CDF^-1 for the logistic is CDF^-1(y) = \mu + \sigma * log(y / (1-y))
         u = torch.zeros_like(means).uniform_(1e-5, 1. - 1e-5)  # NCHW
+        # print("  means: ({:.2f}, {:.2f}) {:.4f}".format(means.min().item(), means.max().item(), means.mean().item()))
+        # print("  log_scales: ({:.2f}, {:.2f}) {:.4f}".format(log_scales.min().item(), log_scales.max().item(), log_scales.mean().item()))
         x = means + torch.exp(log_scales) * (torch.log(u) - torch.log(1. - u))  # NCHW
 
         if self.use_coeffs:
             assert C == 3
+            # print("   sample x:", x.shape, x.min().item(), x.max().item(), x.dtype)
 
+            # print("x:", x.shape, x.min().item(), x.max().item(), x.dtype)
             clamp = lambda x_: torch.clamp(x_, 0, 255.)
 
             # Be careful about coefficients! We need to use the correct selection mask, namely the one for the G and

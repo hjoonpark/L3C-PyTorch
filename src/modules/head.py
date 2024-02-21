@@ -33,11 +33,12 @@ class RGBHead(nn.Module):
                 Head(config_ms, Cin=3))
         self._repr = 'MeanShift//Head(C=3)'
 
-    def __repr__(self):
-        return f'RGBHead({self._repr})'
+    # def __repr__(self):
+    #     return f'RGBHead({self._repr})'
 
     def forward(self, x):
-        return self.head(x)
+        x = self.head(x)
+        return x
 
 
 class Head(nn.Module):
@@ -52,8 +53,8 @@ class Head(nn.Module):
         self.head = conv(Cin, config_ms.Cf, config_ms.kernel_size)
         self._repr = f'Conv({config_ms.Cf})'
 
-    def __repr__(self):
-        return f'Head({self._repr})'
+    # def __repr__(self):
+    #     return f'Head({self._repr})'
 
     def forward(self, x):
         return self.head(x)
