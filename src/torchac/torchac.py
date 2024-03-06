@@ -165,7 +165,6 @@ def decode_logistic_mixture(
         cdf = _get_uint16_cdf(logit_probs_softmax, targets, means, log_scales)
         return decode_cdf(cdf, input_string)
 
-
 # ------------------------------------------------------------------------------
 
 # The following code is invoced for when the CDF is not on GPU, and we cannot use torchac/torchac_kernel.cu
@@ -177,12 +176,10 @@ def _get_uint16_cdf(logit_probs_softmax, targets, means, log_scales):
     cdf = cdf.cpu()
     return cdf
 
-
 def _get_C_cur_weighted(logit_probs_softmax_c, targets, means_c, log_scales_c):
     C_cur = _get_C_cur(targets, means_c, log_scales_c)  # NKHWL
     C_cur = C_cur.mul(logit_probs_softmax_c.unsqueeze(-1)).sum(1)  # NHWL
     return C_cur
-
 
 def _get_C_cur(targets, means_c, log_scales_c):  # NKHWL
     """
@@ -198,7 +195,6 @@ def _get_C_cur(targets, means_c, log_scales_c):  # NKHWL
     # NKHWL'
     cdf = centered_targets.mul(inv_stdv).sigmoid()  # sigma' * (x - mu)
     return cdf
-
 
 def _renorm_cast_cdf_(cdf, precision):
     Lp = cdf.shape[-1]

@@ -178,6 +178,7 @@ class Bitcoding(object):
             c_uniform = self._get_uniform_cdf(S.shape, dmll.L)
             for c in range(S.shape[1]):
                 S_c = S[:, c, ...].to(torch.int16)
+                print("JP>> encoding 'c_uniform'")
                 encoded = r.range_encode(S_c, c_uniform, self.times)
                 write_num_bytes_encoded(len(encoded), fout)
                 entropy_coding_bytes += len(encoded)
@@ -226,6 +227,7 @@ class Bitcoding(object):
         # in parallel for all channels
         def encoder(c, C_cur):
             S_c = S[:, c, ...].to(torch.int16)
+            print("JP>> encoding for float range")
             encoded = r.range_encode(S_c, cdf=C_cur, time_logger=self.times)
             write_num_bytes_encoded(len(encoded), fout)
             fout.write(encoded)

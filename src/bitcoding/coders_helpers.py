@@ -42,6 +42,8 @@ class CodingCDFNonshared(object):
         self.targets = torch.linspace(dmll.x_min - dmll.bin_width / 2,
                                       dmll.x_max + dmll.bin_width / 2,
                                       dmll.L + 1, dtype=torch.float32, device=l.device)
+        print(">>>self.targets:", self.targets.shape)
+        assert 0
         self.total_C = total_C
         self.c_cur = 0
 

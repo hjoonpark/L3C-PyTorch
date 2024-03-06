@@ -143,12 +143,12 @@ def check_correct_torchac_backend_available():
         from torchac import torchac
     except ImportError as e:
         raise ValueError(f'Caught {e}. --write_to_files requires torchac. See README.')
-    if pe.CUDA_AVAILABLE and not torchac.CUDA_SUPPORTED:
-        raise ValueError('Found CUDA but torachac_backend_gpu not compiled. '
-                         'Either compile it or use CUDA_VISIBLE_DEVICES="". See also README')
-    if not pe.CUDA_AVAILABLE and not torchac.CPU_SUPPORTED:
-        raise ValueError('No CUDA found but torchac_backend_cpu not compiled. '
-                         'Compile it or set CUDA_VISIBLE_DEVICES appropriately. See also README.')
+    # if pe.CUDA_AVAILABLE and not torchac.CUDA_SUPPORTED:
+    #     raise ValueError('Found CUDA but torachac_backend_gpu not compiled. '
+    #                      'Either compile it or use CUDA_VISIBLE_DEVICES="". See also README')
+    # if not pe.CUDA_AVAILABLE and not torchac.CPU_SUPPORTED:
+    #     raise ValueError('No CUDA found but torchac_backend_cpu not compiled. '
+    #                      'Compile it or set CUDA_VISIBLE_DEVICES appropriately. See also README.')
 
 class MultiscaleTester(object):
     def __init__(self, log_date, flags, restore_itr, l3c=False):
@@ -273,6 +273,7 @@ class MultiscaleTester(object):
                 to_tensor_transform=transforms.Compose(to_tensor_transform))
 
     def _test(self, ds):
+        print("JP")
         print("-"*10, "self._test")
 
         metric_name = 'bpsp recursive' if self.recursive else 'bpsp'
@@ -299,17 +300,19 @@ class MultiscaleTester(object):
             if self.flags.write_to_files:
                 print('***', filename)
                 img_raw = img["raw"].long().unsqueeze(0).to(pe.DEVICE)  # 1CHW
-                with self.times.skip(i == 0):
-                    out_dir = self.flags.write_to_files
-                    os.makedirs(out_dir, exist_ok=True)
-                    out_p = os.path.join(out_dir, filename + _FILE_EXT)
-                    # As a side effect, create a time report if --time_report given.
-                    bpsp = self._write_to_file(img_raw, out_p)
-                    test_result[filename] = bpsp
-                    log = (f'{self.log_date}: {filename} ({i: 10d}): '
-                           f'mean {test_result.metric_name}={test_result.mean()}')
-                    print(log)
-                    continue
+                
+                # with self.times.skip(i == 0):
+                out_dir = self.flags.write_to_files
+                os.makedirs(out_dir, exist_ok=True)
+                out_p = os.path.join(out_dir, filename + _FILE_EXT)
+                # As a side effect, create a time report if --time_report given.
+                print(">>>> _write_to_file")
+                bpsp = self._write_to_file(img_raw, out_p)
+                test_result[filename] = bpsp
+                log = (f'{self.log_date}: {filename} ({i: 10d}): '
+                        f'mean {test_result.metric_name}={test_result.mean()}')
+                print(log)
+                continue
 
             # for k, v in img.items():
             #     if torch.is_tensor(v):
@@ -371,19 +374,20 @@ class MultiscaleTester(object):
         :param out_p: string
         :return: info string
         """
+        print(">> _write_to_file")
         if os.path.isfile(out_p):
             os.remove(out_p)
 
-        with self.times.run('=== bc.encode'):
-            bpsp = self.bc.encode(img, pout=out_p)
+        # with self.times.run('=== bc.encode'):
+        bpsp = self.bc.encode(img, pout=out_p)
 
         # If encoder wrote as parts, update `out_p` so that decode finds files.
         out_p_part = out_p + part_suffix_helper.make_part_suffix(0)
         if not os.path.isfile(out_p) and os.path.isfile(out_p_part):
             out_p = out_p_part
 
-        with self.times.run('=== bc.decode'):
-            img_o = self.bc.decode(pin=out_p)
+        # with self.times.run('=== bc.decode'):
+        img_o = self.bc.decode(pin=out_p)
 
         pe.assert_equal(img, img_o)
 
@@ -459,7 +463,7 @@ class MultiscaleTester(object):
                                     #  ('rgb+bn0', [0]),          # Sample RGB + z^(1)
                                     #  ('rgb+bn0+bn1', [0, 1])
                                      ):  # Sample RGB + z^(1) + z^(2)
-            sampled = self.blueprint.sample_forward(img_batch, sample_scales, epoch="test")
+            sampled = self.blueprint.sample_forward(img_batch, sample_scales, name_prefix=f"crop_test")
             print("sampled:", sampled.shape)
             bpsp_sample = sum(bpsps[len(sample_scales) + 1:])
             image_saver.save_img(sampled, '{}_{}_{:.3f}.png'.format(save_prefix, style, bpsp_sample))

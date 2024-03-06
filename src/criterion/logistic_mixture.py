@@ -203,8 +203,7 @@ class DiscretizedMixLogisticLoss(vis.summarizable_module.SummarizableModule):
         log_probs = cond_C * log_cdf_plus + (1. - cond_C) * out_B
 
         # combine with pi, NCKHW, (-inf, 0]
-        log_probs_weighted = log_probs.add(
-                log_softmax(logit_pis, dim=2))  # (-inf, 0]
+        log_probs_weighted = log_probs.add(log_softmax(logit_pis, dim=2))  # (-inf, 0]
 
         # final log(P), NCHW
         return -log_sum_exp(log_probs_weighted, dim=2)  # NCHW

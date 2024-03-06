@@ -41,6 +41,10 @@ class ArithmeticCoder(object):
         :param cdf: cdf to use, either a NHWLp matrix or instance of CDFOut
         :return: data encode to a bytes string
         """
+        print(">>>> range_encode")
+        print("  data:", data.shape, data.min().item(), data.max().item())
+        print("  cdf:", cdf.shape, cdf.min().item(), cdf.max().item())
+
         assert len(data.shape) == 3, data.shape
 
         with time_logger.run('data -> cpu'):
@@ -61,7 +65,7 @@ class ArithmeticCoder(object):
             assert Lp == self.L + 1, (Lp, self.L)
 
             with time_logger.run('ac.encode'):
-                out_bytes = torchac.encode_cdf(cdf, data)
+                out_bytes = torchac.encode_float_cdf(cdf, data)
 
         return out_bytes
 
